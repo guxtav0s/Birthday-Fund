@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Birthday Fund</title>
+    <link rel="stylesheet" href="css/cadastro.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+
+    <header class="logo-container">
+        <img src="assets/logo.png" alt="Birthday Fund Logo"> <span>Birthday Fund</span>
+    </header>
+
+    <main class="form-container">
+        <h1>CADASTRO</h1>
+
+        <form id="formCadastro" novalidate>
+            
+            <div class="input-group">
+                <label for="nome">Nome Completo:</label>
+                <input type="text" id="nome" name="nome" required>
+                <span id="nomeError" class="mensagem-erro"></span>
+            </div>
+
+            <div class="input-group">
+                <label for="apelido">Apelido:</label>
+                <div class="input-with-icon">
+                    <input type="text" id="apelido" name="apelido" required>
+                    <i class="fa-regular fa-user icon"></i>
+                </div>
+                <span id="apelidoError" class="mensagem-erro"></span>
+            </div>
+
+            <div class="input-group">
+                <label for="email">E-mail:</label>
+                <input type="email" id="email" name="email" required>
+                <span id="emailError" class="mensagem-erro"></span>
+            </div>
+
+            <div class="input-group">
+                <label for="senha">Criar Senha:</label>
+                <div class="input-with-icon">
+                    <input type="password" id="senha" name="senha" required minlength="8">
+                    <i class="fa-solid fa-eye-slash icon toggle-senha" data-target="senha"></i>
+                </div>
+                <span id="senhaError" class="mensagem-erro">A senha deve ter no mínimo 8 caracteres, uma letra e um número.</span>
+            </div>
+
+            <div class="input-group">
+                <label for="confirmarSenha">Confirmar Senha:</label>
+                <div class="input-with-icon">
+                    <input type="password" id="confirmarSenha" name="confirmarSenha" required minlength="8">
+                    <i class="fa-solid fa-eye-slash icon toggle-senha" data-target="confirmarSenha"></i>
+                </div>
+                <span id="confirmarError" class="mensagem-erro">As senhas não coincidem.</span>
+            </div>
+
+            <div id="mensagemGeral"></div>
+
+            <div class="button-group">
+                <a href="login.html" class="btn btn-secondary">Voltar</a>
+                <button type="submit" id="btnCadastrar" class="btn btn-primary" disabled>Cadastrar</button>
+            </div>
+
+        </form>
+    </main>
+
+    <script src="js/cadastro.js"></script>
+</body>
+</html>
