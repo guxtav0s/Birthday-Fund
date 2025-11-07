@@ -26,7 +26,6 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     // --- Funções de Validação ---
-    // (Todas as funções de validação continuam as mesmas)
     function validarNome() {
         if (nomeInput.value.trim() === "") {
             nomeError.textContent = "O campo Nome completo é obrigatório.";
@@ -38,7 +37,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         atualizarEstadoBotao();
     }
-
     function validarApelido() {
         if (apelidoInput.value.trim() === "") {
             apelidoError.textContent = "O campo Apelido é obrigatório.";
@@ -50,7 +48,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         atualizarEstadoBotao();
     }
-
     function validarEmail() {
         const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!regexEmail.test(emailInput.value)) {
@@ -63,7 +60,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         atualizarEstadoBotao();
     }
-
     function validarSenha() {
         const regexSenha = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
         if (!regexSenha.test(senhaInput.value)) {
@@ -76,7 +72,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         validarConfirmarSenha(); 
     }
-
     function validarConfirmarSenha() {
         if (confirmarSenhaInput.value !== senhaInput.value || confirmarSenhaInput.value === "") {
             confirmarError.textContent = "As senhas não coincidem.";
@@ -88,7 +83,6 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         atualizarEstadoBotao();
     }
-
     function atualizarEstadoBotao() {
         const todosValidos = Object.values(validacao).every(valido => valido);
         btnCadastrar.disabled = !todosValidos;
@@ -118,7 +112,7 @@ document.addEventListener("DOMContentLoaded", function() {
     senhaInput.addEventListener("input", validarSenha);
     confirmarSenhaInput.addEventListener("input", validarConfirmarSenha);
 
-    // --- Submissão do Formulário (COM MOCK) ---
+    // --- Submissão do Formulário (COM MOCK "AO VIVO") ---
     form.addEventListener("submit", function(event) {
         event.preventDefault();
 
@@ -133,43 +127,50 @@ document.addEventListener("DOMContentLoaded", function() {
             Senha_Usuario: senhaInput.value
         };
 
-        // INÍCIO DO MOCK 
-        // Simula o comportamento da API (sucesso ou erro) sem um back-end real.
+        // --- INÍCIO DO MOCK "AO VIVO" (usando localStorage) ---
+        console.log("MOCK: Verificando dados no localStorage...");
 
-        // Só mudar para 'true' para simular um erro de "E-mail já existe" (409)
-        const simularErroEmailExistente = false;
-
-        console.log("MOCK: Enviando dados...", dadosCadastro);
-
-        // Simula uma espera de 1.5 segundos da rede
         setTimeout(() => {
-            if (simularErroEmailExistente) {
-                // Simula Erro 409
-                console.log("MOCK: Erro 409 - E-mail já existe.");
+            // Pega do localStorage.
+            // Se não existir, cria um array vazio.
+            let usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
+
+            // Verifica se o e-mail já existe nesse "banco"
+            const emailExistente = usersDB.find(user => user.email === dadosCadastro.Email_Usuario);
+
+            if (emailExistente) {
+                // 3. Simula Erro 409 (E-mail já existe)
+                console.log("MOCK: Erro 409 - E-mail já existe no localStorage.");
                 mensagemGeral.textContent = "Erro: Este e-mail já está cadastrado.";
                 mensagemGeral.style.color = "#ff6b6b";
                 btnCadastrar.disabled = false;
                 btnCadastrar.textContent = "Cadastrar";
             } else {
-                // Simula Sucesso 201
-                console.log("MOCK: Sucesso 201 - Cadastro realizado.");
+                // 4. Salva o novo usuário (apenas e-mail e senha são necessários para o login)
+                usersDB.push({
+                    email: dadosCadastro.Email_Usuario,
+                    senha: dadosCadastro.Senha_Usuario
+                });
+                // Salva o array atualizado de volta no localStorage
+                localStorage.setItem("usersDB", JSON.stringify(usersDB));
+
+                // 5. Simula Sucesso 201
+                console.log("MOCK: Sucesso 201 - Usuário salvo no localStorage.");
                 mensagemGeral.textContent = "Cadastro realizado com sucesso!";
                 mensagemGeral.style.color = "#4cff4c";
                 
-                // Redireciona para o login após 2 segundos
                 setTimeout(() => {
                     window.location.href = "login.html"; 
                 }, 2000);
             }
-        }, 1500);
+        }, 1500); // 1.5 segundos de simulação de rede
 
-        // --- FIM DO MOCK ---
+        // --- FIM DO MOCK "AO VIVO" ---
 
+        /* // --- CÓDIGO DA API REAL (Usar quando o Backend estiver pronto) ---
+        (Basta apagar o bloco MOCK acima e descomentar este bloco)
 
-        /* --- AQUI JÁ É O CÓDIGO DA API REAL, QUE IREMOS USAR QUANDO O BACKEND E A API ESTIVER PRONTOS ---
-            (Só apagar o bloco MOCK acima e descomentar este bloco)
-
-        // ESPAÇO PARA POR A URL DA API QUANDO O BACKEND ESTIVER PRONTO
+        // SÓ COLOCAR A URL DA API QUANDO O BACKEND ESTIVER PRONTO
         const apiUrl = "";
 
         fetch(apiUrl, {
