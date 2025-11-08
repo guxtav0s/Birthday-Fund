@@ -51,5 +51,5 @@ function salvarPerfil() {
 
 function cancelarAlteracoes() {
   const confirmacao = confirm("Deseja descartar as alterações não salvas?");
-  if (confirmacao) window.location.href = "index.html";
+  if (confirmacao) window.location.href = "inicio.html";
 }
