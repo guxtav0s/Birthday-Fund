@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 mensagemGeral.style.color = "#4cff4c"; // Verde
                 
                 setTimeout(() => {
-                    window.location.href = "dashboard.html"; 
+                    window.location.href = "inicio.html"; 
                 }, 2000);
 
             } else {

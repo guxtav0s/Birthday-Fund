@@ -38,7 +38,7 @@ header {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 0; /* A margem foi movida para o <header> */
+    margin-bottom: 0; 
 }
 
 .logo-container img {
@@ -244,45 +244,42 @@ input[type="password"] {
     }
     
     header {
-        /* Mantém a direção horizontal */
         flex-direction: row; 
-        justify-content: space-between; /* Mantém o alinhamento das pontas */
+        justify-content: space-between;
         align-items: center; 
-        
-        /* Apenas reduz o padding lateral */
+
         padding: 15px 20px; 
         margin-bottom: 10px;
     }
 
     .logo-container {
-        /* Garante que ele não ocupe a tela toda */
         align-self: auto;
-        margin-bottom: 0; /* Remove a margem extra */
+        margin-bottom: 0;
     }
 
     .logo-container img {
-        width: 60px; /* Logo menor no mobile */
+        width: 60px;
         height: 60px;
     }
     
     .logo-container span {
-        display: block; /* Esconde o texto "Birthday Fund" no mobile */
+        display: block;
         font-size: 1rem;
     }
 
     .user-icon-container {
-        display: block; /* <--- AQUI ESTÁ A CORREÇÃO */
-        font-size: 2.0rem; /* Reduz um pouco o ícone no mobile */
+        display: block;
+        font-size: 2.0rem;
     }
 
-    /* O restante do CSS do form (igual ao do cadastro) */
+    /* O restante do CSS do form */
     .form-container {
         width: 100%;
         max-width: 100%; 
         padding: 20px;
         border: none; 
         border-radius: 0;
-        min-height: calc(100vh - 90px); /* Ajustar altura */
+        min-height: calc(100vh - 90px);
     }
 
     h1 {
