@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Perfil - Birthday Fund</title>
+  <link rel="stylesheet" href="perfil.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    <div class="logo">
+      <a href="inicio.html"><span><i class="fa-solid fa-cake-candles"></i> Birthday Fund</span></a>
+    </div>
+    <nav id="navLinks">
+      <a href="inicio.html">Início</a>
+      <a href="sobre.html">Quem somos</a>
+    </nav>
+    <div class="user-icon">
+      <a href="#"><i class="fa-solid fa-user"></i></a>
+    </div>
+  </header>
+
+  <main class="perfil-container">
+    <h1>Editar Perfil</h1>
+
+    <!-- ======== SEÇÃO INFORMAÇÕES BÁSICAS ======== -->
+    <section class="perfil-section">
+      <h2>Informações Básicas</h2>
+      <form id="perfilForm">
+        <div class="form-group">
+          <label for="nome">Nome completo *</label>
+          <input type="text" id="nome" name="nome" required placeholder="Digite seu nome completo">
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input type="email" id="email" name="email" required placeholder="exemplo@email.com">
+        </div>
+
+        <div class="form-group">
+          <label for="telefone">Telefone</label>
+          <input type="tel" id="telefone" name="telefone" placeholder="(xx) xxxxx-xxxx">
+        </div>
+
+        <div class="form-group">
+          <label for="cargo">Departamento / Cargo</label>
+          <input type="text" id="cargo" name="cargo" placeholder="Digite seu cargo ou setor">
+        </div>
+      </form>
+    </section>
+
+    <!-- ======== SEÇÃO SEGURANÇA ======== -->
+    <section class="perfil-section">
+      <h2>Segurança</h2>
+      <button class="toggle-senha" onclick="toggleSenha()">Alterar Senha</button>
+
+      <div id="senha-section" class="senha-container">
+        <div class="form-group">
+          <label for="senhaAtual">Senha atual</label>
+          <input type="password" id="senhaAtual" placeholder="Digite sua senha atual">
+        </div>
+
+        <div class="form-group">
+          <label for="novaSenha">Nova senha</label>
+          <input type="password" id="novaSenha" oninput="checkStrength()" placeholder="Digite a nova senha">
+          <div id="forcaSenha" class="forca-senha">Força: <span id="nivel">-</span></div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmarSenha">Confirmar nova senha</label>
+          <input type="password" id="confirmarSenha" placeholder="Confirme a nova senha">
+        </div>
+      </div>
+    </section>
+
+    <div class="botoes">
+      <button class="btn-salvar" onclick="salvarPerfil()">Salvar Alterações</button>
+      <button class="btn-cancelar" onclick="cancelarAlteracoes()">Cancelar</button>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Birthday Fund - Todos os direitos reservados</p>
+  </footer>
+
+  <script src="perfil.js"></script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+/* ======= RESET ======= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ======= GLOBAL ======= */
+body {
+  color: white;
+  background: linear-gradient(180deg, #3a0ca3, #000);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ======= NAVBAR ======= */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.logo span {
+  font-weight: bold;
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.logo a {
+  color: white;
+  text-decoration: none;
+}
+
+.menu-icon {
+  font-size: 24px;
+  cursor: pointer;
+  display: none;
+}
+
+nav {
+  display: flex;
+  gap: 20px;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+nav a:hover {
+  color: #a8c4ff;
+}
+
+.user-icon {
+  font-size: 22px;
+  cursor: pointer;
+}
+
+#navLinks a {
+  font-size: 1.1rem;
+}
+
+.fa-cake-candles {
+    font-size: 24px;
+    padding: 0 5px;
+    cursor: pointer;
+}
+
+/* ======= HERO SECTION ======= */
+.hero {
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.hero h1 {
+  font-size: 1.8rem;
+  line-height: 1.4;
+  max-width: 700px;
+}
+
+button {
+  margin-top: 25px;
+  background: linear-gradient(90deg, #a8c4ff, #d6e3ff);
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+/* ======= SOBRE ======= */
+.sobre {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.sobre h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.sobre p {
+    max-width: 700px;
+    margin: 0 auto 30px auto;
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+.features {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-top: 40px;
+    cursor: pointer;
+}
+
+.feature-card {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 20px;
+    border-radius: 10px;
+    width: 220px;
+    text-align: center;
+    transition: transform 0.3s;
+}
+
+.feature-card:hover {
+    transform: scale(1.05);
+}
+
+.icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+/* ======= FOOTER ======= */
+footer {
+  text-align: center;
+  padding: 15px 0;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+footer p {
+  margin-bottom: 10px;
+  font-weight: 500;
+  font-size: 1.1rem;
+}
+
+.social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.user-icon i {
+  color: white;
+}
+
+.social-icons a {
+  color: white;
+  font-size: 20px;
+}
+
+/* ======= RESPONSIVIDADE ======= */
+@media (max-width: 768px) {
+    nav {
+    position: absolute;
+    top: 70px;
+    right: 0;
+    background: rgba(0, 0, 0, 0.85);
+    flex-direction: column;
+    width: 200px;
+    display: none;
+    padding: 15px 0;
+  }
+
+  nav.active {
+    display: flex;
+  }
+
+  .menu-icon {
+    display: block;
+  }
+}
