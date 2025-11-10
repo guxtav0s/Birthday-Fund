@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gerenciamento de Usuários</title>
+    <link rel="stylesheet" href="css/gerenciamento-usuarios.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="sidebar-top">
+          <div class="logo"> 
+            <!-- small circular logo -->
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" fill="#fff" fill-opacity="0.12" />
+              <path d="M8 12h8M12 8v8" stroke="#fff" stroke-opacity="0.9" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="brand">LachingHult</div>
+        </div>
+
+        <nav>
+          <a class="nav-item">
+            <span class="icon"> 
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 12h18" stroke="#cfc7f7" stroke-opacity="0.9" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="text">Home</span>
+          </a>
+
+          <a class="nav-item">
+            <span class="icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 6h16M4 12h16M4 18h16" stroke="#cfc7f7" stroke-opacity="0.9" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="text">Dashboard</span>
+          </a>
+
+          <a class="nav-item selected">
+            <span class="icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="6" width="18" height="12" rx="2" stroke="#fff" stroke-opacity="0.9" stroke-width="1.2"/>
+                <path d="M8 10h8" stroke="#fff" stroke-opacity="0.9" stroke-width="1" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="text">Settings</span>
+          </a>
+
+          <a class="nav-item">
+            <span class="icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="8" r="2" stroke="#cfc7f7" stroke-opacity="0.9" stroke-width="1.2"/>
+                <path d="M6 20c0-3 4-5 6-5s6 2 6 5" stroke="#cfc7f7" stroke-opacity="0.9" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span class="text">User Management</span>
+          </a>
+
+          <a class="nav-item">
+            <span class="icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="#cfc7f7" stroke-opacity="0.9" stroke-width="1.2"/>
+                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09c.7 0 1.28-.4 1.51-1a1.65 1.65 0 00-.33-1.82L4.31 3.1A2 2 0 017.14.27l.06.06A1.65 1.65 0 009 1.27c.22.6.8 1 1.51 1H12a2 2 0 110 4h-.09c-.7 0-1.28.4-1.51 1a1.65 1.65 0 00.33 1.82L11.69 9a2 2 0 012.83 0l.06.06a1.65 1.65 0 00.33 1.82c.23.6.8 1 1.51 1H21a2 2 0 110 4h-.09c-.7 0-1.28.4-1.51 1z" stroke="#cfc7f7" stroke-opacity="0.9" stroke-width="0.6"/>
+              </svg>
+            </span>
+            <span class="text">Doniss</span>
+          </a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <h1>Gerenciamento de Usuários</h1>
+          <div class="tools">
+            <div class="search">
+              <input placeholder="Buscar por nome, email, ou perfil..." />
+            </div>
+            <button id="openModal" class="btn primary">+ Novo Usuário</button>
+          </div>
+        </header>
+
+        <section class="content">
+          <div class="card table-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nome</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Data de Criação</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <!-- Linhas renderizadas pelo JS -->
+              </tbody>
+            </table>
+
+            <div class="table-footer">
+              <div>Mostrando 1 a 10 de 50 usuários</div>
+              <div class="pagination">
+                <button>&lt;</button>
+                <button class="page active">1</button>
+                <button class="page">2</button>
+                <button class="page">3</button>
+                <button>&gt;</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel">
+        <h2 id="modalTitle">Cadastrar Novo Usuário</h2>
+        <form id="userForm">
+          <input type="hidden" id="userId" />
+          <label>Nome Completo
+            <input id="fullName" name="fullName" type="text" placeholder="Nome Completo" required />
+          </label>
+          <label>Email
+            <input id="email" name="email" type="email" placeholder="Email" required />
+          </label>
+          <label>Senha
+            <input id="password" name="password" type="password" placeholder="Senha" />
+          </label>
+          <label class="confirm-row">Confirmar Senha
+            <div class="toggle-row">
+              <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Confirmar Senha" />
+              <button type="button" class="toggle">◦</button>
+            </div>
+          </label>
+          <label>Status
+            <select id="status" name="status">
+              <option value="Ativo">Ativo</option>
+              <option value="Inativo">Inativo</option>
+              <option value="Admin">Admin</option>
+            </select>
+          </label>
+
+          <div class="modal-actions">
+            <button type="button" id="cancel" class="btn ghost">Cancelar</button>
+            <button type="submit" id="submitBtn" class="btn primary">Cadastrar Usuário</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="js/gerenciamento-usuarios.js"></script>
+  </body>
+</html>

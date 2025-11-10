@@ -1,0 +1,64 @@
+/* Estilos principais para replicar a imagem (gradiente roxo, sidebar, tabela e modal) */
+:root{
+  --bg1: #1f1640;
+  --bg2: #4a28b6;
+  --card: rgba(255,255,255,0.04);
+  --panel: linear-gradient(180deg, rgba(84,52,170,0.9), rgba(48,24,88,0.9));
+  --accent: #7d5cff;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;color:#e9e9ff}
+body{
+  background: radial-gradient(1200px 400px at 20% 10%, rgba(100,60,180,0.2), transparent), linear-gradient(180deg,var(--bg2),#15102a);
+}
+.app{display:flex;min-height:100vh;padding:40px}
+.sidebar{width:180px;background:linear-gradient(180deg, rgba(20,12,36,0.85), rgba(10,8,28,0.9));border-radius:10px;padding:8px 10px 18px 10px;color:#dcd6f8}
+.sidebar-top{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid rgba(255,255,255,0.03);margin-bottom:6px}
+.sidebar .logo{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));}
+.brand{font-weight:700;margin:0;color:rgba(255,255,255,0.9);font-size:14px}
+.sidebar nav{display:flex;flex-direction:column;padding:8px 6px}
+.sidebar nav .nav-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;color:#d7cde9;margin:8px 0;text-decoration:none;opacity:.95}
+.sidebar nav .nav-item .icon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;color:inherit;opacity:0.95}
+.sidebar nav .nav-item .text{font-size:15px}
+.sidebar nav .nav-item:hover{background:rgba(255,255,255,0.02)}
+.sidebar nav .nav-item.selected{background:linear-gradient(90deg, rgba(125,92,255,0.24), rgba(77,43,168,0.22));box-shadow:inset 0 1px 0 rgba(255,255,255,0.03);color:#fff}
+.sidebar nav .nav-item.selected .text{font-weight:700}
+.main{flex:1;margin-left:24px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.topbar h1{font-size:32px;margin:0;font-weight:600}
+.tools{display:flex;gap:12px;align-items:center}
+.search input{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04);padding:10px 14px;border-radius:12px;color:#ddd;min-width:380px}
+.btn{border:0;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+.btn.primary{background:var(--accent);box-shadow:0 6px 18px rgba(125,92,255,0.18);color:#fff}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#ddd}
+.content{display:flex;gap:20px}
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border-radius:12px;padding:18px;box-shadow:0 6px 30px rgba(0,0,0,0.6);width:100%}
+.table-card table{width:100%;border-collapse:collapse}
+.table-card thead th{font-weight:600;text-align:left;padding:14px 18px;color:#dcd6f8;background:rgba(0,0,0,0.25);border-radius:6px}
+.table-card tbody td{padding:16px 18px;border-top:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));color:#efeefe}
+.table-card tbody tr:nth-child(odd) td{background:rgba(255,255,255,0.01)}
+.status{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-weight:600}
+.status.green{background:rgba(34,197,94,0.12);color:#bff0cf}
+.status.gray{background:rgba(200,200,200,0.03);color:#ccc}
+.table-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;color:#bfb8ea}
+.pagination button{background:transparent;border:1px solid rgba(255,255,255,0.04);color:#ddd;padding:6px 10px;border-radius:50%;margin-left:8px}
+.pagination .page.active{background:#fff;border-color:transparent;color:#1a0b3a}
+
+/* Modal styles */
+.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:60}
+.hidden{display:none}
+.modal-backdrop{position:absolute;inset:0;background:linear-gradient(180deg, rgba(12,8,22,0.65), rgba(12,8,22,0.78));backdrop-filter:blur(6px)}
+.modal-panel{position:relative;min-width:360px;max-width:420px;background:var(--panel);padding:20px;border-radius:14px;box-shadow:0 20px 50px rgba(25,10,60,0.6);z-index:70;border:1px solid rgba(255,255,255,0.06)}
+.modal-panel h2{margin:0 0 12px 0;font-size:18px}
+.modal-panel form{display:flex;flex-direction:column;gap:10px}
+.modal-panel label{font-size:13px;color:#d9d5ff;display:flex;flex-direction:column;gap:8px}
+.modal-panel input{padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:rgba(0,0,0,0.08);color:#fff}
+.toggle-row{display:flex;gap:8px}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
+
+/* Responsividade simples */
+@media(max-width:900px){
+  .app{padding:18px}
+  .sidebar{display:none}
+  .search input{min-width:220px}
+}
