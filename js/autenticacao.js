@@ -1,34 +1,33 @@
 document.addEventListener("DOMContentLoaded", function() {
 
-    // --- ELEMENTOS DAS ABAS ---
     const tabLogin = document.getElementById("tabLogin");
     const tabRegister = document.getElementById("tabRegister");
     const loginForm = document.getElementById("loginForm");
     const registerForm = document.getElementById("registerForm");
     const switchToRegister = document.getElementById("switchToRegister");
     const switchToLogin = document.getElementById("switchToLogin");
+    
+    const slider = document.querySelector(".form-slider");
 
-    // --- FUNÇÃO DE TROCA DE ABAS ---
     function showForm(formToShow, tabToActivate) {
-        loginForm.classList.remove("active");
-        registerForm.classList.remove("active");
         tabLogin.classList.remove("active");
         tabRegister.classList.remove("active");
-        formToShow.classList.add("active");
+        
         tabToActivate.classList.add("active");
+
+        if (formToShow === "register") {
+            slider.classList.add("show-register");
+        } else {
+            slider.classList.remove("show-register");
+        }
     }
 
-    // --- EVENT LISTENERS DAS ABAS ---
-    tabLogin.addEventListener("click", () => showForm(loginForm, tabLogin));
-    tabRegister.addEventListener("click", () => showForm(registerForm, tabRegister));
-    switchToRegister.addEventListener("click", () => showForm(registerForm, tabRegister));
-    switchToLogin.addEventListener("click", () => showForm(loginForm, tabLogin));
+    tabLogin.addEventListener("click", () => showForm("login", tabLogin));
+    tabRegister.addEventListener("click", () => showForm("register", tabRegister));
+    switchToRegister.addEventListener("click", () => showForm("register", tabRegister));
+    switchToLogin.addEventListener("click", () => showForm("login", tabLogin));
 
-    // ===================================================================
-    // --- LÓGICA DO FORMULÁRIO DE CADASTRO (REGISTER) ---
-    // ===================================================================
     
-    // --- Seleção de Elementos (Cadastro) ---
     const regNome = document.getElementById("reg-nome");
     const regEmail = document.getElementById("reg-email");
     const regUsuario = document.getElementById("reg-usuario");
@@ -52,7 +51,6 @@ document.addEventListener("DOMContentLoaded", function() {
         confirmar: false
     };
 
-    // --- Funções de Validação (Cadastro) ---
     function regValidarNome() {
         if (regNome.value.trim().length < 3) {
             regNomeError.textContent = "Nome completo é obrigatório.";
@@ -120,7 +118,6 @@ document.addEventListener("DOMContentLoaded", function() {
         regBtn.disabled = !todosValidos;
     }
 
-    // --- Event Listeners (Cadastro) ---
     regNome.addEventListener("input", regValidarNome);
     regEmail.addEventListener("input", regValidarEmail);
     regUsuario.addEventListener("input", regValidarUsuario);
@@ -133,7 +130,6 @@ document.addEventListener("DOMContentLoaded", function() {
         regConfirmarSenha.type = isChecked ? "text" : "password";
     });
 
-    // --- Submissão (Cadastro) ---
     registerForm.addEventListener("submit", function(event) {
         event.preventDefault();
         regGeralError.textContent = "";
@@ -148,44 +144,41 @@ document.addEventListener("DOMContentLoaded", function() {
         regBtn.disabled = true;
         regBtn.textContent = "Registrando...";
 
-        // --- INÍCIO DO MOCK "AO VIVO" (usando localStorage) ---
-        // (Este bloco está ATIVO)
         setTimeout(() => {
             let usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
             const emailExistente = usersDB.find(user => user.email === dadosCadastro.email);
             
             if (emailExistente) {
-                // Erro: E-mail já existe
                 regGeralError.textContent = "Este e-mail já está cadastrado.";
                 regBtn.disabled = false;
                 regBtn.textContent = "Registrar";
             } else {
-                // Sucesso: Salva e muda de aba
-                // (No mock, só precisamos salvar o que o login usa)
+                const isAdmin = dadosCadastro.email === 'admin@admin.com';
                 usersDB.push({ 
+                    id: String(Date.now()).slice(-6),
                     email: dadosCadastro.email, 
-                    senha: dadosCadastro.senha 
+                    senha: dadosCadastro.senha,
+                    nome: dadosCadastro.nome,
+                    usuario: dadosCadastro.usuario,
+                    role: isAdmin ? 'admin' : 'user',
+                    status: isAdmin ? 'Admin' : 'Ativo',
+                    createdAt: new Date().toISOString().split('T')[0]
                 });
                 localStorage.setItem("usersDB", JSON.stringify(usersDB));
                 
                 alert("Cadastro realizado com sucesso! Faça o login.");
-                showForm(loginForm, tabLogin); // Muda para a aba de login
-                registerForm.reset(); // Limpa o formulário
+                showForm("login", tabLogin);
+                registerForm.reset();
                 
-                // Re-habilita o botão e limpa o estado
                 regBtn.textContent = "Registrar";
                 for (let key in regValidacao) { regValidacao[key] = false; }
                 regAtualizarBotao();
             }
         }, 1500);
-        // --- FIM DO MOCK ---
-
 
         /* // --- CÓDIGO DA API REAL (Usar quando o Back-end estiver pronto) ---
-           // (Basta apagar o bloco MOCK acima e descomentar este bloco)
-
-        // 1. SUBSTITUA PELA URL DA API REAL
-        const apiUrl = "https://sua-api-real-aqui.com/usuarios"; // ou /cadastro
+           
+        const apiUrl = "https://sua-api-real-aqui.com/usuarios";
         
         fetch(apiUrl, {
             method: "POST",
@@ -193,21 +186,18 @@ document.addEventListener("DOMContentLoaded", function() {
             body: JSON.stringify({
                 Nome_Usuario: dadosCadastro.nome,
                 Email_Usuario: dadosCadastro.email,
-                Apelido_Usuario: dadosCadastro.usuario, // DER antigo usava Apelido
+                Apelido_Usuario: dadosCadastro.usuario,
                 Senha_Usuario: dadosCadastro.senha
             })
         })
         .then(response => {
             if (response.status === 201 || response.status === 200) {
-                // SUCESSO
                 alert("Cadastro realizado com sucesso! Faça o login.");
-                showForm(loginForm, tabLogin);
+                showForm("login", tabLogin);
                 registerForm.reset();
             } else if (response.status === 409) {
-                // E-mail já existe
                 regGeralError.textContent = "Este e-mail já está cadastrado.";
             } else {
-                // Outro erro
                 regGeralError.textContent = `Erro ao cadastrar (Código: ${response.status}).`;
             }
         })
@@ -216,18 +206,13 @@ document.addEventListener("DOMContentLoaded", function() {
             regGeralError.textContent = "Erro de conexão com o servidor. Tente novamente.";
         })
         .finally(() => {
-            // Re-habilita o botão em qualquer cenário
             regBtn.disabled = false;
             regBtn.textContent = "Registrar";
         });
         */
     });
 
-    // ===================================================================
-    // --- LÓGICA DO FORMULÁRIO DE LOGIN (LOGIN) ---
-    // ===================================================================
-
-    // --- Seleção de Elementos (Login) ---
+    
     const loginEmail = document.getElementById("login-email");
     const loginSenha = document.getElementById("login-senha");
     const loginMostrarSenha = document.getElementById("login-mostrar-senha");
@@ -242,7 +227,6 @@ document.addEventListener("DOMContentLoaded", function() {
         senha: false
     };
 
-    // --- Funções de Validação (Login) ---
     function loginValidarEmail() {
         const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!regexEmail.test(loginEmail.value)) {
@@ -273,7 +257,6 @@ document.addEventListener("DOMContentLoaded", function() {
         loginBtn.disabled = !todosValidos;
     }
 
-    // --- Event Listeners (Login) ---
     loginEmail.addEventListener("input", loginValidarEmail);
     loginSenha.addEventListener("input", loginValidarSenha);
     
@@ -281,7 +264,6 @@ document.addEventListener("DOMContentLoaded", function() {
         loginSenha.type = this.checked ? "text" : "password";
     });
 
-    // --- Submissão (Login) ---
     loginForm.addEventListener("submit", function(event) {
         event.preventDefault();
         loginGeralError.textContent = "";
@@ -292,33 +274,52 @@ document.addEventListener("DOMContentLoaded", function() {
         loginBtn.disabled = true;
         loginBtn.textContent = "Entrando...";
 
-        // --- INÍCIO DO MOCK "AO VIVO" (usando localStorage) ---
-        // (Este bloco está ATIVO)
         setTimeout(() => {
-            const usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
+            let usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
+            
+            if (usersDB.length === 0) {
+                const isAdmin = email === 'admin@admin.com';
+                const adminUser = { 
+                    id: String(Date.now()).slice(-6),
+                    email: 'admin@admin.com', 
+                    senha: 'admin123', 
+                    nome: 'Admin Birthday', 
+                    usuario: 'admin', 
+                    role: 'admin',
+                    status: 'Admin',
+                    createdAt: new Date().toISOString().split('T')[0]
+                };
+                usersDB.push(adminUser);
+                localStorage.setItem("usersDB", JSON.stringify(usersDB));
+            }
+
             const usuarioEncontrado = usersDB.find(user => user.email === email && user.senha === senha);
 
             if (usuarioEncontrado) {
                 loginGeralError.textContent = "Login efetuado com sucesso! Redirecionando...";
                 loginGeralError.style.color = "green";
                 
+                const nomeDoUsuario = usuarioEncontrado.nome || usuarioEncontrado.email; 
+                const nomeDeUsuario = usuarioEncontrado.usuario || usuarioEncontrado.email.split('@')[0];
+
+                sessionStorage.setItem('currentUserEmail', usuarioEncontrado.email);
+                sessionStorage.setItem('currentUserName', nomeDoUsuario);
+                sessionStorage.setItem('currentUserHandle', nomeDeUsuario);
+                sessionStorage.setItem('currentUserRole', usuarioEncontrado.role || 'user');
+                
                 setTimeout(() => {
-                    window.location.href = "inicio.html"; 
+                    window.location.href = "inicio.html";
                 }, 1000);
                 
             } else {
-                // Erro: Credenciais inválidas
                 loginGeralError.textContent = "E-mail ou senha inválidos.";
                 loginBtn.disabled = false;
                 loginBtn.textContent = "Entrar";
             }
         }, 1500);
-        // --- FIM DO MOCK ---
 
         /* // --- CÓDIGO DA API REAL (Usar quando o Back-end estiver pronto) ---
-           // (Basta apagar o bloco MOCK acima e descomentar este bloco)
-
-        // 1. SUBSTITUA PELA URL DA API REAL
+           
         const apiUrl = "https://sua-api-real-aqui.com/login";
         
         fetch(apiUrl, {
@@ -330,8 +331,8 @@ document.addEventListener("DOMContentLoaded", function() {
             })
         })
         .then(response => {
-            if (response.ok) { // Status 200-299
-                return response.json(); // Pega o token, por exemplo
+            if (response.ok) {
+                return response.json();
             } else if (response.status === 401) {
                 throw new Error("Credenciais inválidas");
             } else {
@@ -339,19 +340,23 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         })
         .then(data => {
-            // SUCESSO
-            // Ex: Salvar o token
-            // localStorage.setItem("token", data.token);
+            const nomeDoUsuario = data.nome || data.email; 
+            const nomeDeUsuario = data.usuario || data.email.split('@')[0];
+
+            sessionStorage.setItem('currentUserEmail', data.email);
+            sessionStorage.setItem('currentUserName', nomeDoUsuario);
+            sessionStorage.setItem('currentUserHandle', nomeDeUsuario);
+            sessionStorage.setItem('currentUserRole', data.role || 'user');
+            // sessionStorage.setItem('token', data.token);
 
             loginGeralError.textContent = "Login efetuado com sucesso! Redirecionando...";
             loginGeralError.style.color = "green";
             
             setTimeout(() => {
-                window.location.href = "dashboard.html"; // Mude para sua página de dashboard
+                window.location.href = "inicio.html";
             }, 1000);
         })
         .catch(error => {
-            // ERRO
             console.error("Erro no login:", error.message);
             loginGeralError.textContent = "E-mail ou senha inválidos.";
         })

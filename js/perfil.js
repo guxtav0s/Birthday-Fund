@@ -1,55 +1,119 @@
-function toggleMenu() {
-  const nav = document.getElementById('navLinks');
-  nav.classList.toggle('active');
-}
+document.addEventListener("DOMContentLoaded", function() {
 
-function toggleSenha() {
-  const section = document.getElementById('senha-section');
-  section.classList.toggle('active');
-}
+    const form = document.getElementById("perfilForm");
+    const profileUserName = document.getElementById("profileUserName");
+    const profileUserHandle = document.getElementById("profileUserHandle");
+    const inputNome = document.getElementById("nome");
+    const inputUsuario = document.getElementById("usuario");
+    const inputEmail = document.getElementById("email");
+    const inputSenhaAtual = document.getElementById("senhaAtual");
+    const inputNovaSenha = document.getElementById("novaSenha");
+    const inputConfirmarSenha = document.getElementById("confirmarSenha");
+    const checkMostrarSenha = document.getElementById("mostrar-senha");
+    const mensagemGeral = document.getElementById("mensagemGeral");
+    
+    function carregarPerfilUsuario() {
+        const userName = sessionStorage.getItem("currentUserName");
+        const userEmail = sessionStorage.getItem("currentUserEmail");
+        const userHandle = sessionStorage.getItem("currentUserHandle");
 
-function checkStrength() {
-  const senha = document.getElementById("novaSenha").value;
-  const nivel = document.getElementById("nivel");
-  const forca = document.getElementById("forcaSenha");
+        if (userName && userEmail && userHandle) {
+            profileUserName.textContent = userName;
+            profileUserHandle.textContent = `@${userHandle}`;
+            inputNome.value = userName;
+            inputUsuario.value = userHandle;
+            inputEmail.value = userEmail;
+        } else {
+            window.location.href = "autenticacao.html";
+        }
+    }
 
-  let score = 0;
-  if (senha.length >= 8) score++;
-  if (/[A-Z]/.test(senha)) score++;
-  if (/[0-9]/.test(senha)) score++;
-  if (/[^A-Za-z0-9]/.test(senha)) score++;
+    checkMostrarSenha.addEventListener("change", function() {
+        const isChecked = this.checked;
+        inputSenhaAtual.type = isChecked ? "text" : "password";
+        inputNovaSenha.type = isChecked ? "text" : "password";
+        inputConfirmarSenha.type = isChecked ? "text" : "password";
+    });
 
-  switch (score) {
-    case 0:
-    case 1:
-      nivel.textContent = "Fraca";
-      forca.style.color = "#ff4d4d";
-      break;
-    case 2:
-      nivel.textContent = "Média";
-      forca.style.color = "#ffcc00";
-      break;
-    case 3:
-    case 4:
-      nivel.textContent = "Forte";
-      forca.style.color = "#4CAF50";
-      break;
-  }
-}
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+        salvarPerfil();
+    });
 
-function salvarPerfil() {
-  const nome = document.getElementById("nome").value;
-  const email = document.getElementById("email").value;
+    function salvarPerfil() {
+        mensagemGeral.textContent = "";
+        const emailAtual = sessionStorage.getItem("currentUserEmail");
+        const usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
+        const userIndex = usersDB.findIndex(user => user.email === emailAtual);
 
-  if (!nome || !email) {
-    alert("Por favor, preencha os campos obrigatórios (Nome e Email).");
-    return;
-  }
+        if (userIndex === -1) {
+            mensagemGeral.textContent = "Erro: Utilizador não encontrado.";
+            mensagemGeral.style.color = "#ff4d4d";
+            return;
+        }
 
-  alert("Perfil atualizado com sucesso!");
-}
+        const usuario = usersDB[userIndex];
+        
+        const nomeAtualizado = inputNome.value;
+        const usuarioAtualizado = inputUsuario.value;
+        const senhaAtual = inputSenhaAtual.value;
+        const novaSenha = inputNovaSenha.value;
+        const confirmarSenha = inputConfirmarSenha.value;
 
-function cancelarAlteracoes() {
-  const confirmacao = confirm("Deseja descartar as alterações não salvas?");
-  if (confirmacao) window.location.href = "inicio.html";
-}
+        let alteracoesFeitas = false;
+
+        if (usuario.nome !== nomeAtualizado || usuario.usuario !== usuarioAtualizado) {
+            usuario.nome = nomeAtualizado;
+            usuario.usuario = usuarioAtualizado;
+            alteracoesFeitas = true;
+        }
+
+        if (senhaAtual || novaSenha || confirmarSenha) {
+            if (senhaAtual !== usuario.senha) {
+                mensagemGeral.textContent = "A 'Senha atual' está incorreta.";
+                mensagemGeral.style.color = "#ff4d4d";
+                return;
+            }
+            if (novaSenha.length < 8) {
+                mensagemGeral.textContent = "A 'Nova senha' deve ter pelo menos 8 caracteres.";
+                mensagemGeral.style.color = "#ff4d4d";
+                return;
+            }
+            if (novaSenha !== confirmarSenha) {
+                mensagemGeral.textContent = "As novas senhas não coincidem.";
+                mensagemGeral.style.color = "#ff4d4d";
+                return;
+            }
+            if (novaSenha === usuario.senha) {
+                mensagemGeral.textContent = "A nova senha não pode ser igual à senha antiga.";
+                mensagemGeral.style.color = "#ff4d4d";
+                return;
+            }
+            
+            usuario.senha = novaSenha;
+            alteracoesFeitas = true;
+        }
+
+        if (alteracoesFeitas) {
+            localStorage.setItem("usersDB", JSON.stringify(usersDB));
+            sessionStorage.setItem("currentUserName", usuario.nome);
+            sessionStorage.setItem("currentUserHandle", usuario.usuario);
+
+            mensagemGeral.textContent = "Alterações salvas com sucesso!";
+            mensagemGeral.style.color = "#4CAF50";
+            
+            inputSenhaAtual.value = "";
+            inputNovaSenha.value = "";
+            inputConfirmarSenha.value = "";
+            
+            setTimeout(() => {
+                window.location.reload(); 
+            }, 1500);
+        } else {
+            mensagemGeral.textContent = "Nenhuma alteração detetada.";
+            mensagemGeral.style.color = "#ffcc00";
+        }
+    }
+
+    carregarPerfilUsuario();
+});

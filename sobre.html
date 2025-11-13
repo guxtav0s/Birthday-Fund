@@ -8,50 +8,72 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
+  
   <header class="navbar">
     <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    
     <div class="logo">
       <a href="inicio.html"><span><i class="fa-solid fa-cake-candles"></i> Birthday Fund</span></a>
     </div>
+    
     <nav id="navLinks">
-      <a href="inicio.html">Início</a>
-      <a href="perfil.html">Meu Perfil</a>
+      <div class="nav-center">
+        <a href="inicio.html">Início</a>
+        <a href="perfil.html">Meu Perfil</a>
+      </div>
+      
+      <div class="nav-right">
+        <a href="autenticacao.html" class="auth-link">Entre agora</a>
+        <a href="perfil.html" class="user-icon"><i class="fa-solid fa-user"></i></a>
+      </div>
     </nav>
-    <div class="user-icon">
-      <a href="perfil.html"><i class="fa-solid fa-user"></i></a>
-    </div>
   </header>
-
+  
   <main class="sobre">
-    <h2>Quem nós somos?</h2>
-    <p>
-      Birthday Fund é a sua plataforma completa para transformar a organização do seu aniversário.
-      Gerencie sua lista de convidados e todos os detalhes da festa, mas com um diferencial inovador:
-      Crie e compartilhe campanhas de arrecadação de fundos para presentes.
-      <br><br>
-      Com a integração do PIX, seus convidados contribuem de forma instantânea e segura, garantindo
-      que você receba o valor para comprar o que realmente deseja.
-      <br><br>
-      Menos complicação, mais presente dos sonhos!
-    </p>
-    <button>ENTRE AGORA!</button>
+    <div class="content-left">
+      <h2>Quem nós somos?</h2>
+      <p>
+        Birthday Fund é a sua plataforma completa para transformar a organização do seu aniversário.
+        Gerencie sua lista de convidados e todos os detalhes da festa, mas com um diferencial inovador:
+        Crie e compartilhe campanhas de arrecadação de fundos para presentes.
+        <br><br>
+        Com a integração do PIX, seus convidados contribuem de forma instantânea e segura, garantindo
+        que você receba o valor para comprar o que realmente deseja.
+        <br><br>
+        Menos complicação, mais presente dos sonhos!
+      </p>
+      
+      <button id="btnCriarContaSobre" onclick="window.location.href='autenticacao.html'">Criar conta</button>
+    
+    </div>
 
-    <div class="features">
-      <div class="feature-card">
-        <div class="icon">🎉</div>
+    <div class="content-right">
+      <div class="floating-card blue">
+        <i class="fa-solid fa-gift icon-large"></i>
         <p>Gerenciamento de eventos e campanhas</p>
       </div>
-      <div class="feature-card">
-        <div class="icon">📅</div>
+      <div class="floating-card red">
+        <i class="fa-solid fa-calendar-plus icon-large"></i>
         <p>Cadastro de Eventos e Aniversário</p>
       </div>
-      <div class="feature-card">
-        <div class="icon">💸</div>
+      <div class="floating-card green">
+        <i class="fa-solid fa-money-bill-transfer icon-large"></i>
         <p>Transações via Pix</p>
       </div>
     </div>
   </main>
 
+  <footer>
+    <p>Nossos Contatos</p>
+    <div class="social-icons">
+      <a href="https://www.facebook.com/unit.br/?locale=pt_BR" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
+      <a href="https://www.instagram.com/unit_br/" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+      <a href="https://www.linkedin.com/school/unit-br/" target="_blank"><i class="fa-brands fa-linkedin-in"></i></a>
+      <a href="https://x.com/unit_br" target="_blank"><i class="fa-brands fa-twitter"></i></a>
+    </div>
+  </footer>
+
   <script src="js/script.js"></script>
+
 </body>
 </html>

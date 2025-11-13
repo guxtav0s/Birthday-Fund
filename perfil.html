@@ -8,84 +8,97 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
+
   <header class="navbar">
     <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    
     <div class="logo">
       <a href="inicio.html"><span><i class="fa-solid fa-cake-candles"></i> Birthday Fund</span></a>
     </div>
+    
     <nav id="navLinks">
-      <a href="inicio.html">Início</a>
-      <a href="sobre.html">Quem somos</a>
+      <div class="nav-center">
+        <a href="inicio.html">Início</a>
+        <a href="sobre.html">Quem somos</a>
+      </div>
+      
+      <div class="nav-right">
+        <a href="autenticacao.html" class="auth-link">Entre agora</a>
+        <a href="perfil.html" class="user-icon"><i class="fa-solid fa-user"></i></a>
+      </div>
     </nav>
-    <div class="user-icon">
-      <a href="#"><i class="fa-solid fa-user"></i></a>
-    </div>
   </header>
 
   <main class="perfil-container">
-    <h1>Editar Perfil</h1>
+    
+    <aside class="perfil-sidebar-left">
+      <h1>Meu Perfil</h1>
+      <div class="perfil-avatar">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <h2 id="profileUserName">Nome Sobrenome</h2>
+      <p id="profileUserHandle">@username</p>
+      
+      </aside>
 
-    <!-- ======== SEÇÃO INFORMAÇÕES BÁSICAS ======== -->
-    <section class="perfil-section">
-      <h2>Informações Básicas</h2>
+    <section class="perfil-content-right">
       <form id="perfilForm">
-        <div class="form-group">
-          <label for="nome">Nome completo *</label>
-          <input type="text" id="nome" name="nome" required placeholder="Digite seu nome completo">
+
+        <div class="perfil-section">
+          <h2>Informações Pessoais</h2>
+          
+          <div class="form-group">
+            <label for="nome">Nome Completo</label>
+            <input type="text" id="nome" name="nome" placeholder="Digite seu nome completo">
+          </div>
+          <div class="form-group">
+            <label for="usuario">Nome de usuário</label>
+            <input type="text" id="usuario" name="usuario" placeholder="Digite seu nome de usuário">
+          </div>
+          <div class="form-group">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="email" placeholder="Digite seu e-mail" readonly>
+            <small>O e-mail não pode ser alterado.</small>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="email">Email *</label>
-          <input type="email" id="email" name="email" required placeholder="exemplo@email.com">
-        </div>
+        <div class="perfil-section">
+          <h2>Alterar Senha</h2>
+          
+          <div class="form-group">
+            <label for="senhaAtual">Senha atual</label>
+            <input type="password" id="senhaAtual" placeholder="Digite sua senha atual">
+          </div>
 
-        <div class="form-group">
-          <label for="telefone">Telefone</label>
-          <input type="tel" id="telefone" name="telefone" placeholder="(xx) xxxxx-xxxx">
-        </div>
+          <div class="form-group">
+            <label for="novaSenha">Nova senha</label>
+            <input type="password" id="novaSenha" placeholder="Digite a nova senha">
+          </div>
 
-        <div class="form-group">
-          <label for="cargo">Departamento / Cargo</label>
-          <input type="text" id="cargo" name="cargo" placeholder="Digite seu cargo ou setor">
+          <div class="form-group">
+            <label for="confirmarSenha">Confirmar nova senha</label>
+            <input type="password" id="confirmarSenha" placeholder="Confirme a nova senha">
+          </div>
+
+          <div class="checkbox-group">
+            <input type="checkbox" id="mostrar-senha">
+            <label for="mostrar-senha">Mostrar senha</label>
+          </div>
         </div>
+        
+        <div id="mensagemGeral" class="mensagem-geral"></div>
+
+        <div class="botoes">
+          <button type="submit" class="btn-salvar">Salvar Alterações</button>
+        </div>
+        
       </form>
     </section>
 
-    <!-- ======== SEÇÃO SEGURANÇA ======== -->
-    <section class="perfil-section">
-      <h2>Segurança</h2>
-      <button class="toggle-senha" onclick="toggleSenha()">Alterar Senha</button>
-
-      <div id="senha-section" class="senha-container">
-        <div class="form-group">
-          <label for="senhaAtual">Senha atual</label>
-          <input type="password" id="senhaAtual" placeholder="Digite sua senha atual">
-        </div>
-
-        <div class="form-group">
-          <label for="novaSenha">Nova senha</label>
-          <input type="password" id="novaSenha" oninput="checkStrength()" placeholder="Digite a nova senha">
-          <div id="forcaSenha" class="forca-senha">Força: <span id="nivel">-</span></div>
-        </div>
-
-        <div class="form-group">
-          <label for="confirmarSenha">Confirmar nova senha</label>
-          <input type="password" id="confirmarSenha" placeholder="Confirme a nova senha">
-        </div>
-      </div>
-    </section>
-
-    <div class="botoes">
-      <button class="btn-salvar" onclick="salvarPerfil()">Salvar Alterações</button>
-      <button class="btn-cancelar" onclick="cancelarAlteracoes()">Cancelar</button>
-    </div>
   </main>
-
-  <footer>
-    <p>&copy; 2025 Birthday Fund - Todos os direitos reservados</p>
-  </footer>
 
   <script src="js/script.js"></script>
   <script src="js/perfil.js"></script>
+
 </body>
 </html>

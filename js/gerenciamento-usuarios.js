@@ -1,309 +1,293 @@
-  /*
-  CRUD front-end com mock (localStorage) e hooks comentados para integrar com API.
-  */
+document.addEventListener('DOMContentLoaded', function(){
+    
+    const userRole = sessionStorage.getItem('currentUserRole');
+    if (userRole !== 'admin') {
+        alert('Acesso negado. Esta página é apenas para administradores.');
+        window.location.href = 'inicio.html';
+        return;
+    }
 
-  document.addEventListener('DOMContentLoaded', function(){
-    const USE_MOCK = true;
-    const API_BASE_URL = 'https://api.example.com/users'; // exemplo
-
-    const localKey = 'mockUsers_v1';
+    const localKey = 'usersDB';
 
     const openBtn = document.getElementById('openModal');
     const modal = document.getElementById('modal');
     const cancel = document.getElementById('cancel');
-    const backdrop = modal && modal.querySelector('.modal-backdrop');
+    const backdrop = document.getElementById('backdrop');
     const form = document.getElementById('userForm');
     const tbody = document.getElementById('usersTableBody');
-    const searchInput = document.querySelector('.search input');
+    const searchInput = document.getElementById('searchInput');
     const modalTitle = document.getElementById('modalTitle');
     const submitBtn = document.getElementById('submitBtn');
+    const userCount = document.getElementById('userCount');
 
-    // campos
     const fldId = document.getElementById('userId');
     const fldName = document.getElementById('fullName');
     const fldEmail = document.getElementById('email');
+    const fldUsername = document.getElementById('username');
     const fldPassword = document.getElementById('password');
-    const fldConfirm = document.getElementById('confirmPassword');
     const fldStatus = document.getElementById('status');
 
-    // --- Mock helpers ---
     function seedMock(){
-      const seed = [
-        { id: '1', name: 'João S.', email: 'joao@emp.com', status: 'Admin', createdAt: '2024-10-10' },
-        { id: '2', name: 'Maria P.', email: 'maria@emp.com', status: 'Ativo', createdAt: '2024-09-10' },
-        { id: '3', name: 'Senta', email: 'senta@emp.com', status: 'Inativo', createdAt: '2024-09-01' },
-        { id: '4', name: 'Confirmare', email: 'confirmare@emp.com', status: 'Ativo', createdAt: '2024-10-10' }
-      ];
-      localStorage.setItem(localKey, JSON.stringify(seed));
-      return seed;
+      let users = JSON.parse(localStorage.getItem(localKey)) || [];
+      if (!users.find(u => u.email === 'admin@admin.com')) {
+        users.push({ 
+          id: String(Date.now()).slice(-6),
+          email: 'admin@admin.com', 
+          senha: 'admin123', 
+          nome: 'Admin Birthday', 
+          usuario: 'admin', 
+          role: 'admin',
+          status: 'Admin',
+          createdAt: new Date().toISOString().split('T')[0]
+        });
+        localStorage.setItem(localKey, JSON.stringify(users));
+      }
+      return users;
     }
-
+    
     function loadMock(){
-      const raw = localStorage.getItem(localKey);
-      if(!raw) return seedMock();
-      try{ return JSON.parse(raw); }catch(e){ return seedMock(); }
+      return JSON.parse(localStorage.getItem(localKey)) || [];
+    }
+    
+    function saveMock(data){
+      localStorage.setItem(localKey, JSON.stringify(data));
     }
 
-    function saveMock(users){
-      localStorage.setItem(localKey, JSON.stringify(users));
+    async function getUsers(query = ''){
+      const users = loadMock();
+      const q = query.toLowerCase();
+      const results = users.filter(u => 
+        (u.nome && u.nome.toLowerCase().includes(q)) || 
+        (u.email && u.email.toLowerCase().includes(q))
+      );
+      return Promise.resolve(results);
     }
 
-    // --- API helpers (exemplos comentados) ---
-    // async function apiGetAll(){
-    //   const res = await fetch(API_BASE_URL);
-    //   return res.json();
-    // }
-    // async function apiCreate(user){
-    //   const res = await fetch(API_BASE_URL, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(user) });
-    //   return res.json();
-    // }
-    // async function apiUpdate(id, user){
-    //   const res = await fetch(`${API_BASE_URL}/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(user) });
-    //   return res.json();
-    // }
-    // async function apiDelete(id){
-    //   await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
-    // }
-
-    // --- CRUD functions (utilizam mock quando USE_MOCK=true) ---
-    function getAllUsers(){
-      if(USE_MOCK) return Promise.resolve(loadMock());
-      // return apiGetAll();
-      return Promise.reject(new Error('API not configured'));
-    }
-
-    function createUser(data){
-      if(USE_MOCK){
-        const users = loadMock();
-        const id = String(Date.now());
-        const created = { id, ...data, createdAt: new Date().toISOString().slice(0,10) };
-        users.push(created);
-        saveMock(users);
-        return Promise.resolve(created);
+    async function createUser(data){
+      const users = loadMock();
+      if (users.find(u => u.email === data.email)) {
+        return Promise.reject(new Error('Este e-mail já está em uso.'));
       }
-      // return apiCreate(data);
-      return Promise.reject(new Error('API not configured'));
+      
+      const newUser = {
+        id: String(Date.now()).slice(-6),
+        email: data.email,
+        senha: data.senha,
+        nome: data.nome,
+        usuario: data.usuario,
+        role: data.status === 'Admin' ? 'admin' : 'user',
+        status: data.status,
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+
+      users.push(newUser);
+      saveMock(users);
+      return Promise.resolve(newUser);
     }
 
-    function updateUser(id, data){
-      if(USE_MOCK){
-        const users = loadMock();
-        const idx = users.findIndex(u => u.id === id);
-        if(idx === -1) return Promise.reject(new Error('User not found'));
-        users[idx] = { ...users[idx], ...data };
-        saveMock(users);
-        return Promise.resolve(users[idx]);
+    async function updateUser(email, data){
+      let users = loadMock();
+      const index = users.findIndex(u => u.email === email);
+      if(index === -1) return Promise.reject(new Error('Utilizador não encontrado'));
+      
+      const user = users[index];
+      user.nome = data.nome;
+      user.usuario = data.usuario;
+      user.status = data.status;
+      user.role = data.status === 'Admin' ? 'admin' : 'user';
+      if (data.senha) {
+        user.senha = data.senha;
       }
-      // return apiUpdate(id, data);
-      return Promise.reject(new Error('API not configured'));
+      
+      users[index] = user;
+      saveMock(users);
+      return Promise.resolve(users[index]);
     }
 
-    function deleteUser(id){
-      if(USE_MOCK){
-        let users = loadMock();
-        users = users.filter(u => u.id !== id);
-        saveMock(users);
-        return Promise.resolve();
+    async function deleteUser(email){
+      let users = loadMock();
+      if (email === 'admin@admin.com') {
+        return Promise.reject(new Error('Não é possível deletar o utilizador admin principal.'));
       }
-      // return apiDelete(id);
-      return Promise.reject(new Error('API not configured'));
+      users = users.filter(u => u.email !== email);
+      saveMock(users);
+      return Promise.resolve();
     }
 
-    function formatDate(d){
-      if(!d) return '';
-      if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return d.split('-').reverse().join('/');
-      const dt = new Date(d);
-      return dt.toLocaleDateString();
-    }
-
-    /**
-     * Renderiza a tabela. Se for passada uma listaFiltrada, usa-a diretamente.
-     * Caso contrário, recupera todos os usuários (mock ou API) via getAllUsers().
-     */
-    function renderTable(listaFiltrada){
-      const renderFrom = (users)=>{
+    function renderTable(query = ''){
+      if(!tbody) return;
+      
+      getUsers(query).then(users => {
         tbody.innerHTML = '';
-        users.forEach(u =>{
+        if(users.length === 0){
+          tbody.innerHTML = '<tr><td colspan="6">Nenhum utilizador encontrado.</td></tr>';
+          return;
+        }
+        users.forEach(user => {
+          const status = user.status || 'Ativo';
+          
           const tr = document.createElement('tr');
-          tr.dataset.id = u.id;
           tr.innerHTML = `
-            <td>${u.id}</td>
-            <td>${escapeHtml(u.name)}</td>
-            <td>${escapeHtml(u.email)}</td>
-            <td><span class="status ${statusClass(u.status)}">${escapeHtml(u.status)}</span></td>
-            <td>${formatDate(u.createdAt)}</td>
+            <td>${user.id || 'N/A'}</td>
+            <td>${user.nome || 'N/A'}</td>
+            <td>${user.email || 'N/A'}</td>
+            <td>
+              <span class="status ${status}">${status}</span>
+            </td>
+            <td>${user.createdAt || 'N/A'}</td>
             <td class="actions">
-              <button class="btn ghost edit-btn" data-id="${u.id}">Editar</button>
-              <button class="btn ghost delete-btn" data-id="${u.id}">🗑️</button>
+              <button class="btn icon edit-btn" data-email="${user.email}">
+                <i class="fa-solid fa-pencil"></i>
+              </button>
+              <button class="btn icon delete-btn" data-email="${user.email}">
+                <i class="fa-solid fa-trash"></i>
+              </button>
             </td>
           `;
           tbody.appendChild(tr);
         });
-      };
+        
+        userCount.textContent = `Mostrando ${users.length} de ${loadMock().length} utilizadores`;
 
-      if(Array.isArray(listaFiltrada)){
-        renderFrom(listaFiltrada);
-        return;
-      }
-
-      getAllUsers().then(users =>{
-        renderFrom(users);
-      }).catch(err =>{
-        console.error('Erro ao carregar usuários', err);
+      }).catch(err => {
+        tbody.innerHTML = `<tr><td colspan="6">Erro ao carregar dados: ${err.message}</td></tr>`;
       });
     }
 
-    function statusClass(status){
-      if(!status) return '';
-      if(status.toLowerCase().includes('ativo') || status.toLowerCase().includes('admin')) return 'green';
-      return 'gray';
-    }
-
-    function escapeHtml(str){
-      if(!str) return '';
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-
-    function openModal(mode='create', user){
+    function openModal(mode = 'create', user = null){
+      if(!modal || !form) return;
+      
+      form.reset();
+      fldId.value = '';
+      fldEmail.readOnly = false;
+      
       if(mode === 'create'){
         modalTitle.textContent = 'Cadastrar Novo Usuário';
-        submitBtn.textContent = 'Cadastrar Usuário';
-        fldId.value = '';
-        fldName.value = '';
-        fldEmail.value = '';
-        fldPassword.value = '';
-        fldConfirm.value = '';
-        fldStatus.value = 'Ativo';
-      } else if(mode === 'edit' && user){
+        submitBtn.textContent = 'Cadastrar';
+        fldPassword.placeholder = 'Senha (obrigatório)';
+      } else if (mode === 'edit' && user){
         modalTitle.textContent = 'Editar Usuário';
         submitBtn.textContent = 'Salvar Alterações';
-        fldId.value = user.id || '';
-        fldName.value = user.name || '';
-        fldEmail.value = user.email || '';
-        fldPassword.value = '';
-        fldConfirm.value = '';
+        fldPassword.placeholder = 'Deixe em branco para manter';
+        
+        fldId.value = user.id; 
+        fldName.value = user.nome;
+        fldEmail.value = user.email;
+        fldEmail.readOnly = true; 
+        fldUsername.value = user.usuario;
         fldStatus.value = user.status || 'Ativo';
       }
+      
       modal.classList.remove('hidden');
     }
 
     function closeModal(){
-      modal.classList.add('hidden');
+      if(modal) modal.classList.add('hidden');
     }
+    
+    seedMock();
+    renderTable();
 
-    // --- Events ---
-    if(openBtn) openBtn.addEventListener('click', ()=> openModal('create'));
-    if(cancel) cancel.addEventListener('click', closeModal);
-    if(backdrop) backdrop.addEventListener('click', closeModal);
-
-    // Pesquisa em tempo real: filtra por name, email e status (case-insensitive)
     if(searchInput){
-      searchInput.addEventListener('input', function(e){
-        const q = String(e.target.value || '').trim().toLowerCase();
-
-        // Se estiver vazio, renderiza tudo novamente (busca no mock/API)
-        if(!q){
-          renderTable();
-          return;
-        }
-
-        if(USE_MOCK){
-          const users = loadMock();
-          const filtered = users.filter(u => {
-            const name = (u.name||'').toLowerCase();
-            const email = (u.email||'').toLowerCase();
-            const status = (u.status||'').toLowerCase();
-            return name.includes(q) || email.includes(q) || status.includes(q);
-          });
-          renderTable(filtered);
-        } else {
-          // Se estiver usando API real, você pode implementar aqui uma busca remota.
-          // Exemplo comentado (ajuste endpoint/param conforme a API):
-          // fetch(`${API_BASE_URL}?q=${encodeURIComponent(q)}`).then(r=>r.json()).then(data=> renderTable(data));
-
-          // Fallback: buscar todos e filtrar no cliente (menos eficiente):
-          getAllUsers().then(users =>{
-            const filtered = users.filter(u => {
-              const name = (u.name||'').toLowerCase();
-              const email = (u.email||'').toLowerCase();
-              const status = (u.status||'').toLowerCase();
-              return name.includes(q) || email.includes(q) || status.includes(q);
-            });
-            renderTable(filtered);
-          }).catch(()=> renderTable());
-        }
+      searchInput.addEventListener('input', (e) => {
+        renderTable(e.target.value);
       });
     }
 
-    // Handle form submit for create/update
+    if(openBtn) openBtn.addEventListener('click', () => openModal('create'));
+    if(cancel) cancel.addEventListener('click', closeModal);
+    if(backdrop) backdrop.addEventListener('click', closeModal);
+
     if(form){
       form.addEventListener('submit', function(e){
         e.preventDefault();
-        const id = fldId.value && String(fldId.value).trim();
-        const name = fldName.value.trim();
-        const email = fldEmail.value.trim();
-        const password = fldPassword.value;
-        const confirm = fldConfirm.value;
+        
+        const id = fldId.value; 
+        const email = fldEmail.value;
+        const nome = fldName.value;
+        const usuario = fldUsername.value;
+        const senha = fldPassword.value;
         const status = fldStatus.value;
 
-        // Basic validation: name and email required
-        if(!name || !email){
-          alert('Nome e email são obrigatórios.');
-          return;
-        }
-
-        // If creating, require password
         if(!id){
-          if(!password){ alert('Senha é obrigatória ao criar usuário.'); return; }
-          if(password !== confirm){ alert('Senhas não conferem.'); return; }
-        } else {
-          // editing: if password provided, ensure confirm matches
-          if(password && password !== confirm){ alert('Senhas não conferem.'); return; }
+          if(!senha){ alert('Senha é obrigatória para cadastro.'); return; }
         }
-
-        const payload = { name, email, status };
-        if(password) payload.password = password; 
+        
+        const payload = { nome, email, usuario, status };
+        if(senha) payload.senha = senha; 
 
         if(!id){
           createUser(payload).then(()=>{
             renderTable();
             closeModal();
-          }).catch(err=>{ alert('Erro ao criar usuário: '+err.message); });
+          }).catch(err=>{ alert('Erro ao criar utilizador: '+err.message); });
         } else {
-          updateUser(id, payload).then(()=>{
+          updateUser(email, payload).then(()=>{
             renderTable();
             closeModal();
-          }).catch(err=>{ alert('Erro ao atualizar usuário: '+err.message); });
+          }).catch(err=>{ alert('Erro ao atualizar utilizador: '+err.message); });
         }
       });
     }
 
-    // Delegate edit/delete buttons
     if(tbody){
       tbody.addEventListener('click', function(e){
         const editBtn = e.target.closest('.edit-btn');
         const delBtn = e.target.closest('.delete-btn');
+        
         if(editBtn){
-          const id = editBtn.dataset.id;
+          const email = editBtn.dataset.email;
           const users = loadMock();
-          const user = users.find(u=>u.id === id);
+          const user = users.find(u=>u.email === email);
           if(user) openModal('edit', user);
-          else alert('Usuário não encontrado');
+          else alert('Utilizador não encontrado');
           return;
         }
         if(delBtn){
-          const id = delBtn.dataset.id;
-          if(confirm('Deseja realmente deletar este usuário?')){
-            deleteUser(id).then(()=>{
+          const email = delBtn.dataset.email;
+          if(confirm(`Deseja realmente deletar o utilizador ${email}?`)){
+            deleteUser(email).then(()=>{
               renderTable();
-            }).catch(err=> alert('Erro ao deletar: '+err.message));
+            }).catch(err=> alert('Erro ao deletar utilizador: '+err.message));
           }
-          return;
         }
       });
     }
 
-    // initial render
-    renderTable();
+    /* // --- CÓDIGO DA API REAL (Exemplos) ---
+    
+    async function getUsers(query = ''){
+        const response = await fetch(`${API_BASE_URL}?search=${query}`);
+        if(!response.ok) throw new Error('Falha ao buscar usuários');
+        return await response.json();
+    }
 
+    async function createUser(data){
+        const response = await fetch(API_BASE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if(!response.ok) throw new Error('Falha ao criar usuário');
+        return await response.json();
+    }
+
+    async function updateUser(id, data){
+        const response = await fetch(`${API_BASE_URL}/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if(!response.ok) throw new Error('Falha ao atualizar usuário');
+        return await response.json();
+    }
+
+    async function deleteUser(id){
+        const response = await fetch(`${API_BASE_URL}/${id}`, {
+          method: 'DELETE'
+        });
+        if(!response.ok) throw new Error('Falha ao deletar usuário');
+        return Promise.resolve();
+    }
+    */
   });
