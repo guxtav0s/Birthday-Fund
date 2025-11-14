@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const userRole = sessionStorage.getItem('currentUserRole');
     if (userRole !== 'admin') {
         alert('Acesso negado. Esta página é apenas para administradores.');
-        window.location.href = 'inicio.html';
+        window.location.href = 'index.html';
         return;
     }
 

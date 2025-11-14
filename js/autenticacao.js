@@ -308,7 +308,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 sessionStorage.setItem('currentUserRole', usuarioEncontrado.role || 'user');
                 
                 setTimeout(() => {
-                    window.location.href = "inicio.html";
+                    window.location.href = "index.html";
                 }, 1000);
                 
             } else {
