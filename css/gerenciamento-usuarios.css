@@ -158,6 +158,28 @@ body {
   color: white;
 }
 
+.admin-main {
+    padding: 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+    flex: 1;
+    width: 100%;
+}
+
+/* Wrapper da tabela para permitir scroll */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto; /* Permite rolar horizontalmente no mobile */
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px; /* Força largura mínima para não quebrar colunas */
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -418,6 +440,26 @@ footer p {
     width: 95%;
     margin: 20px auto;
   }
+  
+  .admin-main { 
+    padding: 20px; 
+  }
+    
+  .admin-header {
+      flex-direction: column;
+      gap: 15px;
+      align-items: stretch;
+  }
+    
+  .search-box { width: 100%; }
+  .search-box input { width: 100%; }
+    
+    /* Ajuste do Modal de Admin */
+  .modal-panel {
+      width: 95%;
+      padding: 20px;
+  }
+
   .admin-header-container {
     padding: 20px;
     flex-direction: column;
