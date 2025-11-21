@@ -13,12 +13,12 @@
     <div class="menu-icon" onclick="toggleMenu()">☰</div>
     
     <div class="logo">
-      <a href="index.html"><span><i class="fa-solid fa-cake-candles"></i> Birthday Fund</span></a>
+      <a href="inicio.html"><span><i class="fa-solid fa-cake-candles"></i> Birthday Fund</span></a>
     </div>
     
     <nav id="navLinks">
       <div class="nav-center">
-        <a href="index.html">Início</a>
+        <a href="inicio.html">Início</a>
         <a href="perfil.html">Meu Perfil</a>
       </div>
       
@@ -48,15 +48,20 @@
     </div>
 
     <div class="content-right">
-      <div class="floating-card blue">
+      <!-- Cartão 1: Gerenciamento -->
+      <div class="floating-card blue" onclick="window.location.href=''">
         <i class="fa-solid fa-gift icon-large"></i>
         <p>Gerenciamento de eventos e campanhas</p>
       </div>
-      <div class="floating-card red">
+
+      <!-- Cartão 2: Cadastro -->
+      <div class="floating-card red" onclick="window.location.href=''">
         <i class="fa-solid fa-calendar-plus icon-large"></i>
         <p>Cadastro de Eventos e Aniversário</p>
       </div>
-      <div class="floating-card green">
+
+      <!-- Cartão 3: Transações -->
+      <div class="floating-card green" onclick="window.location.href=''">
         <i class="fa-solid fa-money-bill-transfer icon-large"></i>
         <p>Transações via Pix</p>
       </div>
