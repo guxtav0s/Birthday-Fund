@@ -29,9 +29,51 @@
     </nav>
   </header>
 
-  <main class="hero">
+  <main class="hero" id="heroDefault">
     <h1>Birthday Fund: Organize a festa.<br>Arrecade o presente. Tudo via PIX.</h1>
     <button onclick="window.location.href='sobre.html'">Descubra Quem Somos Nós!</button>
+  </main>
+
+  <!-- HERO LOGADA (DIVIDIDA) - INICIALMENTE OCULTA -->
+  <main class="hero-logged" id="heroLogged" style="display: none;">
+    
+    <!-- LADO ESQUERDO (TEXTO) -->
+    <div class="hero-left">
+      <h1>Bem-vindo de volta!</h1>
+      <p>Organize suas festas e acompanhe seus presentes em tempo real.</p>
+      <button onclick="window.location.href='sobre.html'">Descubra Quem Somos Nós!</button>
+    </div>
+
+    <!-- LADO DIREITO (DASHBOARD) -->
+    <div class="hero-right">
+        <div class="dashboard-card">
+            <h3><i class="fa-solid fa-bell"></i> Notificações</h3>
+            <ul class="notification-list">
+                <li>
+                    <span class="highlight">Convite!</span> Você foi convidado para o aniversário de <strong>Ana Clara</strong>.
+                    <a href="#" class="action-link">Ver</a>
+                </li>
+                <li>
+                    <span class="highlight">Lembrete:</span> O aniversário de <strong>João Pedro</strong> é amanhã!
+                    <a href="#" class="action-link">Doar</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="mini-card">
+                <i class="fa-solid fa-gift"></i>
+                <h4>Meus Eventos</h4>
+                <p>2 Ativos</p>
+            </div>
+            <div class="mini-card">
+                <i class="fa-solid fa-envelope-open-text"></i>
+                <h4>Convites</h4>
+                <p>1 Novo</p>
+            </div>
+        </div>
+    </div>
+
   </main>
 
   <footer>

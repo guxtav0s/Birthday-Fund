@@ -1,3 +1,4 @@
+/* ======= RESET E GLOBAIS ======= */
 * {
   margin: 0;
   padding: 0;
@@ -28,6 +29,7 @@ body {
     --cor-principal: #5b2be0;
 }
 
+/* ======== NAVBAR ======== */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -128,6 +130,7 @@ body {
   display: none;
 }
 
+/* ======= HERO (PADRÃO - NÃO LOGADO) ======= */
 .hero {
   flex-grow: 1;
   display: flex;
@@ -146,8 +149,142 @@ body {
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-.hero button,
-.sobre button {
+/* ======= HERO (DASHBOARD - LOGADO) ======= */
+.hero-logged {
+    flex-grow: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 40px 60px;
+    gap: 50px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.hero-left {
+    flex: 1;
+    text-align: left;
+}
+
+.hero-left h1 {
+    font-size: 3rem;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.hero-left p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: #ddd;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.hero-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 500px;
+}
+
+/* CARTÕES DO DASHBOARD */
+.dashboard-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 25px;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.dashboard-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-list {
+    list-style: none;
+}
+
+.notification-list li {
+    background: rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-list .highlight {
+    color: #FFD700;
+    font-weight: bold;
+}
+
+.action-link {
+    color: var(--cor-principal);
+    background: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.85rem;
+    transition: transform 0.2s;
+}
+.action-link:hover {
+    transform: scale(1.05);
+}
+
+.dashboard-grid {
+    display: flex;
+    gap: 20px;
+}
+
+.mini-card {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.mini-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.mini-card i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #FFD700;
+}
+
+.mini-card h4 {
+    font-size: 1rem;
+    margin-bottom: 5px;
+}
+
+.mini-card p {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* ======= BOTÕES GERAIS ======= */
+button {
   background-color: #ffffff;
   color: var(--cor-principal);
   border: 2px solid var(--cor-principal);
@@ -159,12 +296,12 @@ body {
   transition: all 0.3s;
   text-transform: uppercase;
 }
-.hero button:hover,
-.sobre button:hover {
+button:hover {
   background-color: #f0f0f0;
   transform: scale(1.05);
 }
 
+/* ======= PÁGINA SOBRE ======= */
 .sobre {
   flex-grow: 1;
   display: flex;
@@ -200,6 +337,7 @@ body {
   max-width: 400px;
 }
 
+/* CARTÕES FLUTUANTES (LINKS) */
 .floating-card {
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
@@ -214,20 +352,18 @@ body {
   align-items: center;
   gap: 15px;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s; /* Transições mais rápidas para interação */
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s;
   animation: float 3s ease-in-out infinite;
-  cursor: pointer; /* Indica que é clicável */
+  cursor: pointer; /* Indica clique */
 }
 
-/* Efeito Hover nos Cards (Pausa animação e realça) */
 .floating-card:hover {
   transform: scale(1.05);
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.15);
   box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
-  animation-play-state: paused; /* Pausa o float ao passar o mouse */
+  animation-play-state: paused;
 }
 
-/* Efeito Click (Active) */
 .floating-card:active {
   transform: scale(0.98);
 }
@@ -255,6 +391,7 @@ body {
 .floating-card:nth-child(2) { animation-delay: 1s; }
 .floating-card:nth-child(3) { animation-delay: 2s; }
 
+/* ======= FOOTER ======= */
 footer {
   text-align: center;
   padding: 30px 40px;
@@ -276,6 +413,7 @@ footer p {
   color: #FFD700;
 }
 
+/* ======= RESPONSIVIDADE ======= */
 @media (max-width: 900px) {
   .menu-icon {
     display: block;
@@ -322,6 +460,19 @@ footer p {
     font-size: 2.5rem;
   }
   
+  .hero-logged {
+      flex-direction: column;
+      text-align: center;
+      padding: 40px 20px;
+  }
+  .hero-left {
+      text-align: center;
+      margin-bottom: 40px;
+  }
+  .dashboard-grid {
+      flex-direction: column;
+  }
+  
   .sobre {
     flex-direction: column;
     padding: 40px 20px;
@@ -347,14 +498,14 @@ footer p {
   .icon-large {
     font-size: 2.5rem;
   }
-  .floating-card p {
-    font-size: 1rem;
-  }
 }
 
 @media (max-width: 480px) {
   .hero h1 {
     font-size: 2rem;
+  }
+  .hero-left h1 {
+      font-size: 2.2rem;
   }
   .content-left h2 {
     font-size: 1.8rem;
@@ -362,8 +513,7 @@ footer p {
   .content-left p {
     font-size: 0.9rem;
   }
-  .hero button,
-  .sobre button {
+  button {
     padding: 10px 20px;
     font-size: 0.9rem;
   }
