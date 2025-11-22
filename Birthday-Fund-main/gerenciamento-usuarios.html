@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento - Birthday Fund</title>
+    <link rel="stylesheet" href="css/gerenciamento-usuarios.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    
+    <div class="logo">
+      <a href="index.html"><span><i class="fa-solid fa-cake-candles"></i> Birthday Fund</span></a>
+    </div>
+    
+    <nav id="navLinks">
+      <div class="nav-center">
+        <a href="index.html">Início</a>
+        <a href="sobre.html">Quem somos</a>
+        <a href="perfil.html">Meu Perfil</a>
+      </div>
+      
+      <div class="nav-right">
+        <a href="autenticacao.html" class="auth-link">Entre agora</a>
+        <a href="perfil.html" class="user-icon"><i class="fa-solid fa-user"></i></a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="admin-main-container">
+
+    <div class="admin-header-container">
+      <h2>Gerenciamento de Usuários</h2>
+      <div class="header-actions">
+        <div class="search-bar">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" id="searchInput" placeholder="Buscar usuário por nome ou e-mail...">
+        </div>
+        <button class="btn primary" id="openModal"><i class="fa-solid fa-plus"></i> Adicionar Novo</button>
+      </div>
+    </div>
+    
+    <div class="admin-table-container">
+      <div class="table-wrapper">
+        <div class="table-responsive">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Data de Criação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="6">Carregando...</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="table-footer">
+        <span id="userCount">Mostrando 0 de 0 usuários</span>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>Nossos Contatos</p>
+    <div class="social-icons">
+      <a href="https://www.facebook.com/unit.br/?locale=pt_BR" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
+      <a href="https://www.instagram.com/unit_br/" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+      <a href="https://www.linkedin.com/school/unit-br/" target="_blank"><i class="fa-brands fa-linkedin-in"></i></a>
+      <a href="https://x.com/unit_br" target="_blank"><i class="fa-brands fa-twitter"></i></a>
+    </div>
+  </footer>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-backdrop" id="backdrop"></div>
+    <div class="modal-panel">
+      <h2 id="modalTitle">Cadastrar Novo Usuário</h2>
+      <form id="userForm">
+        <input type="hidden" id="userId" />
+        <label>Nome Completo
+          <input id="fullName" name="fullName" type="text" placeholder="Nome Completo" required />
+        </label>
+        <label>Email
+          <input id="email" name="email" type="email" placeholder="Email" required />
+        </label>
+        <label>Nome de Usuário
+            <input id="username" name="username" type="text" placeholder="Nome de Usuário" required />
+        </label>
+        <label>Senha
+          <input id="password" name="password" type="password" placeholder="Senha" />
+        </label>
+        <label>Status/Role
+          <select id="status" name="status">
+            <option value="Ativo">Ativo</option>
+            <option value="Inativo">Inativo</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </label>
+
+        <div class="modal-actions">
+          <button type="button" id="cancel" class="btn ghost">Cancelar</button>
+          <button type="submit" id="submitBtn" class="btn primary">Cadastrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script src="js/gerenciamento-usuarios.js"></script>
+
+</body>
+</html>

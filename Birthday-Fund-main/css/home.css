@@ -1,0 +1,258 @@
+/* =======================================================
+   1. RESET E GLOBAIS
+   ======================================================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+  color: white;
+  background-color: #1A1F45;
+  background-image: url('../assets/background-inicio.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  animation: fadeInPage 0.6s ease-out forwards;
+}
+
+@keyframes fadeInPage { from { opacity: 0; } to { opacity: 1; } }
+
+:root { --cor-principal: #5b2be0; --cor-gold: #FFD700; }
+.hidden { display: none !important; }
+
+/* =======================================================
+   2. NAVBAR (MODELO PERFIL.CSS - FULLSCREEN MOBILE)
+   ======================================================= */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(5px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo a {
+  text-decoration: none;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex; align-items: center; gap: 10px;
+}
+.logo span i { color: white; margin-right: 5px; }
+
+/* Container dos Links */
+#navLinks {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav-center {
+    display: flex; align-items: center; gap: 30px;
+}
+.nav-center a {
+  text-decoration: none; color: #ddd; transition: 0.3s; font-size: 1rem;
+}
+.nav-center a:hover { color: white; }
+
+.nav-right {
+    display: flex; align-items: center; gap: 20px;
+}
+
+.auth-link {
+  border: 1px solid white; padding: 8px 20px; border-radius: 20px;
+  text-decoration: none; color: white; font-weight: bold; transition: 0.3s;
+}
+.auth-link:hover { background: white; color: var(--cor-principal); }
+
+.user-icon { font-size: 1.2rem; color: white; display: flex; align-items: center; }
+.user-icon:hover { color: var(--cor-gold); }
+
+.user-greeting { font-weight: bold; color: var(--cor-gold); margin-right: 5px; }
+.auth-link-logout { color: #ff6b6b; cursor: pointer; text-decoration: none; font-weight: bold; font-size: 0.9rem; }
+
+.menu-icon { display: none; font-size: 1.5rem; cursor: pointer; color: white; }
+
+/* =======================================================
+   3. HERO & DASHBOARD
+   ======================================================= */
+/* Hero Deslogado */
+.hero {
+  flex: 1; display: flex; flex-direction: column;
+  justify-content: center; align-items: flex-start;
+  padding: 0 10%; text-align: left;
+}
+.hero h1 { font-size: 3.5rem; line-height: 1.2; margin-bottom: 20px; }
+.highlight { color: var(--cor-gold); }
+.hero p { font-size: 1.2rem; margin-bottom: 30px; max-width: 600px; color: #ddd; }
+button {
+  padding: 15px 40px; font-size: 1.1rem; background: white; color: var(--cor-principal);
+  border: none; border-radius: 50px; cursor: pointer; font-weight: bold; transition: transform 0.2s;
+}
+button:hover { transform: scale(1.05); }
+
+/* Hero Logado */
+.hero-logged {
+    flex: 1; display: flex; justify-content: space-between; align-items: center;
+    padding: 40px 60px; gap: 50px; max-width: 1400px; margin: 0 auto; width: 100%;
+}
+.hero-left { flex: 1; text-align: left; }
+.hero-left h1 { font-size: 3rem; margin-bottom: 15px; }
+.hero-left p { font-size: 1.2rem; color: #ccc; margin-bottom: 30px; }
+.hero-right { flex: 1; display: flex; flex-direction: column; gap: 20px; max-width: 550px; width: 100%; }
+
+/* Grids Dashboard */
+.dashboard-grid { display: flex; gap: 15px; }
+.mini-card {
+    flex: 1; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 15px;
+    padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.mini-card i { font-size: 2rem; margin-bottom: 10px; color: var(--cor-gold); }
+.mini-card h4 { font-size: 1.5rem; margin: 0; }
+.mini-card p { margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+.dashboard-card {
+    background: rgba(26, 31, 69, 0.65); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px;
+    padding: 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    min-height: 400px; display: flex; flex-direction: column;
+}
+.dashboard-card h3 {
+    margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 10px; font-size: 1.2rem;
+}
+
+/* =======================================================
+   4. SOBRE (CARTÕES FLUTUANTES RESTAURADOS)
+   ======================================================= */
+.sobre {
+    flex: 1; display: flex; padding: 0 10%; align-items: center; justify-content: space-between; gap: 40px;
+}
+
+.content-left { flex: 1; padding-right: 50px; }
+.content-left h2 { font-size: 3rem; margin-bottom: 20px; }
+.content-left p { font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px; color: #e0e0e0; }
+
+.content-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column; /* Empilha um abaixo do outro */
+    gap: 25px;
+    align-items: flex-end; /* Alinha à direita no desktop */
+    max-width: 400px;
+}
+
+/* Animação de Flutuar */
+.floating-card {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 30px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s;
+  animation: float 3s ease-in-out infinite;
+  cursor: pointer; /* Indica clique */
+}
+
+.floating-card:hover {
+  transform: scale(1.05);
+  background-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+  animation-play-state: paused;
+}
+
+.floating-card:active {
+  transform: scale(0.98);
+}
+
+.floating-card.blue .icon-large { color: #007BFF; }
+.floating-card.red .icon-large { color: #FF4D4D; }
+.floating-card.green .icon-large { color: #4CAF50; }
+
+.floating-card p {
+  font-size: 1.1rem;
+  font-weight: bold;
+  line-height: 1.4;
+}
+.icon-large {
+  font-size: 3rem;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.floating-card:nth-child(1) { animation-delay: 0s; }
+.floating-card:nth-child(2) { animation-delay: 1s; }
+.floating-card:nth-child(3) { animation-delay: 2s; }
+
+footer {
+    text-align: center; padding: 20px 40px; background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px); border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: auto;
+}
+.social-icons a { color: white; font-size: 1.5rem; margin: 0 15px; transition: color 0.3s; }
+.social-icons a:hover { color: var(--cor-gold); }
+
+/* =======================================================
+   5. RESPONSIVIDADE (NAVBAR MOBILE + AJUSTES)
+   ======================================================= */
+@media (max-width: 900px) {
+    .menu-icon { display: block; z-index: 1100; }
+    .navbar { padding: 15px 20px; }
+
+    /* Menu Fullscreen (Estilo Perfil) */
+    #navLinks {
+        display: none;
+        flex-direction: column;
+        position: absolute; top: 0; left: 0; width: 100%; height: 100vh;
+        background: rgba(10, 5, 30, 0.95); backdrop-filter: blur(10px);
+        justify-content: center; align-items: center; gap: 40px;
+    }
+    #navLinks.active { display: flex; }
+
+    .nav-center, .nav-right { flex-direction: column; gap: 30px; }
+    .nav-center a, .auth-link, .user-icon a, .auth-link-logout { font-size: 1.5rem; }
+    .auth-link { padding: 12px 30px; }
+
+    /* Hero e Dashboard Mobile */
+    .hero { align-items: center; text-align: center; padding: 40px 20px; }
+    .hero h1 { font-size: 2.5rem; max-width: 100%; }
+
+    .hero-logged {
+        flex-direction: column; padding: 30px 20px; gap: 40px; align-items: center;
+    }
+    .hero-left { text-align: center; margin-bottom: 0; padding: 0; }
+    .hero-left h1 { font-size: 2.2rem; }
+    .hero-left p { margin: 0 auto 30px auto; }
+    .hero-right { width: 100%; max-width: 100%; }
+    .dashboard-grid { width: 100%; flex-direction: column; }
+
+    /* Sobre Mobile (Ajuste dos cards) */
+    .sobre { flex-direction: column; padding: 40px 20px; text-align: center; }
+    .content-left { padding-right: 0; margin-bottom: 40px; }
+    .content-right { width: 100%; align-items: center; max-width: 100%; }
+    .floating-card { width: 100%; max-width: 350px; justify-content: center; }
+}

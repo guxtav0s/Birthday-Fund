@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meus Eventos - Birthday Fund</title>
+  <link rel="stylesheet" href="css/home.css">
+  <link rel="stylesheet" href="css/gerenciamento-eventos.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  
+  <header class="navbar">
+    <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    <div class="logo">
+      <a href="index.html"><span><i class="fa-solid fa-cake-candles"></i> Birthday Fund</span></a>
+    </div>
+    <nav id="navLinks">
+      <div class="nav-center">
+        <a href="index.html">Início</a>
+        <a href="sobre.html">Quem somos</a>
+        <a href="perfil.html">Meu Perfil</a>
+      </div>
+      <div class="nav-right">
+        <a href="autenticacao.html" class="auth-link">Sair</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="manage-container">
+    <div class="manage-header">
+        <h1>Gerenciar <span style="color: #FFD700;">Eventos</span></h1>
+        <div class="tabs-wrapper">
+            <button class="tab-btn active" id="btnHosted">Meus Eventos</button>
+            <button class="tab-btn" id="btnInvited">Convites</button>
+        </div>
+    </div>
+
+    <div id="eventsGrid" class="events-grid"></div>
+  </main>
+
+  <div id="editModal" class="modal-backdrop">
+    <div class="modal-content">
+        
+        <div class="modal-header-bg">
+            <h2><i class="fa-solid fa-sliders"></i> Painel do Evento</h2>
+            <span class="close-modal-btn"><i class="fa-solid fa-xmark"></i></span>
+        </div>
+
+        <div class="modal-body">
+            <form id="editEventForm">
+                <input type="hidden" id="editId">
+                
+                <div class="manage-layout">
+                    
+                    <div class="edit-left">
+                        <div class="edit-section">
+                            <h3>Informações Gerais</h3>
+                            <div class="form-group">
+                                <label>Título do Evento</label>
+                                <input type="text" id="editTitulo" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Data</label>
+                                    <input type="text" id="editData" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Hora</label>
+                                    <input type="text" id="editHora" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Localização</label>
+                                <input type="text" id="editLocal" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Descrição / Notas</label>
+                                <textarea id="editDescricao" rows="4"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="edit-right">
+                        <div class="edit-section">
+                            <h3>Configurações</h3>
+                            
+                            <div class="form-group hidden" id="editMetaGroup">
+                                <label>Meta de Arrecadação (R$)</label>
+                                <input type="number" id="editMeta">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Convidados (E-mails)</label>
+                                <textarea id="editConvidados" rows="4" placeholder="email1@teste.com, email2@teste.com"></textarea>
+                                <small style="color:#888; display:block; margin-top:5px;">Separe por vírgula.</small>
+                            </div>
+                        </div>
+
+                        <div class="btn-delete-zone">
+                            <h4>Zona de Perigo</h4>
+                            <p>A exclusão é permanente e cancelará o evento para todos os convidados.</p>
+                            <button type="button" id="btnDeleteEvent" class="btn-delete">
+                                <i class="fa-solid fa-trash"></i> Excluir Evento
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions-bar">
+                    <button type="button" class="btn-cancel close-modal-btn-action">Cancelar</button>
+                    <button type="submit" class="btn-save"><i class="fa-solid fa-check"></i> Salvar Alterações</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script src="js/gerenciamento-eventos.js"></script>
+</body>
+</html>

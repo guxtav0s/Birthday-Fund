@@ -1,0 +1,302 @@
+/* --- Reset e Configurações Globais --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@keyframes fadeInPage {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+body {
+    font-family: Arial, sans-serif;
+    animation: fadeInPage 0.6s ease-out forwards;
+    background-color: #0f0c29;
+    background-image: 
+        radial-gradient(circle at 15% 20%, rgba(124, 58, 237, 0.3) 0%, transparent 40%),
+        radial-gradient(circle at 85% 70%, rgba(217, 70, 239, 0.2) 0%, transparent 40%),
+        linear-gradient(to right top, #0f0c29, #1a1444, #1f1a5f);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    padding: 20px;
+    color-scheme: dark;
+}
+
+/* Header */
+header {
+    width: 100%; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px; 
+    margin-bottom: 20px; /
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0; 
+}
+
+.logo-container img {
+    width: 80px; 
+    height: 80px;
+}
+
+.logo-container span {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.user-icon-container {
+    font-size: 2.5rem; 
+    color: white;
+    }
+
+/*  Container Principal do Formulário  */
+.form-container {
+    width: 100%;
+    max-width: 450px;
+    background-color: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 15px;
+    padding: 30px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+/*  Título "LOGIN"  */
+h1 {
+    background-color: white;
+    color: #333;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 10px 30px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+/*  Formulário e Inputs  */
+form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group label {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/*  Inputs Padrão  */
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    background-color: white;
+    color: #333;
+    font-size: 1rem;
+}
+
+/*  Inputs com Ícones  */
+.input-with-icon {
+    position: relative;
+    width: 100%;
+}
+
+.input-with-icon .icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+}
+
+.input-with-icon .icon-left {
+    left: 12px;
+}
+
+.input-with-icon .icon-right {
+    right: 12px;
+}
+
+.has-icon-left {
+    padding-left: 40px !important;
+}
+.has-icon-right {
+    padding-right: 40px !important;
+}
+
+.toggle-senha {
+    cursor: pointer;
+}
+
+/*  Mensagens de Erro e Sucesso  */
+.mensagem-erro {
+    color: #ff6b6b;
+    font-size: 0.85rem;
+    min-height: 1.2em; 
+    margin-top: 3px;
+    display: block; 
+}
+
+#emailError, #senhaError {
+    display: none;
+}
+
+#mensagemGeral {
+    text-align: center;
+    font-weight: bold;
+    min-height: 1.5em;
+    margin: 5px 0;
+    color: #ff6b6b; 
+}
+
+/* --- Botões Empilhados  */
+.button-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 15px; 
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    width: 100%;
+}
+
+.btn-primary {
+    background-color: #8A2BE2; 
+    color: white;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #7a1fd1;
+}
+
+.btn-secondary {
+    background-color: #6a0dad; 
+    color: white;
+    transition: background-color 0.3s;
+}
+
+.btn-secondary:hover {
+    background-color: #5a0a9c;
+}
+
+.btn-primary:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Link "Esqueci Senha" */
+.forgot-password {
+    color: #ddd;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.forgot-password:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+/* --- SEÇÃO DE RESPONSIVIDADE --- */
+
+/* Para tablets */
+@media (max-width: 768px) {
+    header {
+        padding: 20px 30px; 
+    }
+}
+
+/* Para smartphones */
+@media (max-width: 480px) {
+    body {
+        padding: 0;
+    }
+    
+    header {
+        flex-direction: row; 
+        justify-content: space-between;
+        align-items: center; 
+        padding: 15px 20px; 
+        margin-bottom: 10px;
+    }
+
+    .logo-container {
+        align-self: auto;
+        margin-bottom: 0;
+    }
+
+    .logo-container img {
+        width: 60px; 
+        height: 60px;
+    }
+    
+    .logo-container span {
+        display: block; 
+        font-size: 1rem;
+    }
+
+    .user-icon-container {
+        display: block; 
+        font-size: 2.0rem; 
+    }
+
+    /* O restante do CSS do form */
+    .form-container {
+        width: 100%;
+        max-width: 100%; 
+        padding: 20px;
+        border: none; 
+        border-radius: 0;
+        min-height: calc(100vh - 90px);
+    }
+
+    h1 {
+        font-size: 1.3rem;
+        padding: 8px 25px;
+    }
+
+    .btn {
+        width: 100%; 
+    }
+}
