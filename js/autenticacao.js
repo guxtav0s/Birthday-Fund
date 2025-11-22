@@ -176,9 +176,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }, 1500);
 
-        /* // --- CÓDIGO DA API REAL (Usar quando o Back-end estiver pronto) ---
-           
-        const apiUrl = "https://sua-api-real-aqui.com/usuarios";
+        /* const apiUrl = "https://sua-api-real-aqui.com/usuarios";
         
         fetch(apiUrl, {
             method: "POST",
@@ -318,8 +316,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }, 1500);
 
-        /* // --- CÓDIGO DA API REAL (Usar quando o Back-end estiver pronto) ---
-           
+        /*
         const apiUrl = "https://sua-api-real-aqui.com/login";
         
         fetch(apiUrl, {
@@ -347,13 +344,12 @@ document.addEventListener("DOMContentLoaded", function() {
             sessionStorage.setItem('currentUserName', nomeDoUsuario);
             sessionStorage.setItem('currentUserHandle', nomeDeUsuario);
             sessionStorage.setItem('currentUserRole', data.role || 'user');
-            // sessionStorage.setItem('token', data.token);
 
             loginGeralError.textContent = "Login efetuado com sucesso! Redirecionando...";
             loginGeralError.style.color = "green";
             
             setTimeout(() => {
-                window.location.href = "inicio.html";
+                window.location.href = "index.html";
             }, 1000);
         })
         .catch(error => {

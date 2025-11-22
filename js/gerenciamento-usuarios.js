@@ -254,8 +254,7 @@ document.addEventListener('DOMContentLoaded', function(){
       });
     }
 
-    /* // --- CÓDIGO DA API REAL (Exemplos) ---
-    
+    /*
     async function getUsers(query = ''){
         const response = await fetch(`${API_BASE_URL}?search=${query}`);
         if(!response.ok) throw new Error('Falha ao buscar usuários');
