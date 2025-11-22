@@ -1,18 +1,15 @@
 document.addEventListener("DOMContentLoaded", function() {
     
-    // ==========================================
-    // 1. CONFIGURAÇÕES E SELETORES
-    // ==========================================
-    
-    const DB_KEY = 'eventsDB'; // Simula a Tabela 'Evento'
-    const currentUserEmail = sessionStorage.getItem("currentUserEmail"); // Simula o ID do Usuário Logado
+    // --- CONFIGURAÇÕES ---
+    const DB_KEY = 'eventsDB';
+    const currentUserEmail = sessionStorage.getItem("currentUserEmail"); 
     const currentUserName = sessionStorage.getItem("currentUserName");
 
     // Telas
     const heroDefault = document.getElementById('heroDefault');
     const heroLogged = document.getElementById('heroLogged');
 
-    // Elementos DOM
+    // Elementos
     const eventsListContainer = document.getElementById('eventsList');
     const statInvites = document.getElementById('statInvites');
     const statActive = document.getElementById('statActive');
@@ -23,36 +20,49 @@ document.addEventListener("DOMContentLoaded", function() {
     const createModal = document.getElementById('createEventModal');
     const createForm = document.getElementById('createEventForm');
 
-    // Config API
-    const USE_API = false; 
-
-    // ==========================================
-    // 2. INICIALIZAÇÃO E SEGURANÇA
-    // ==========================================
-
+    // --- 1. SEGURANÇA DE LOGIN ---
     if (!currentUserEmail) {
         if(heroDefault) heroDefault.classList.remove('hidden');
         if(heroLogged) heroLogged.classList.add('hidden');
-        return; 
+        return; // Para tudo se não estiver logado
     }
 
+    // Se logado, mostra dashboard
     if(heroDefault) heroDefault.classList.add('hidden');
     if(heroLogged) heroLogged.classList.remove('hidden');
 
+    // Saudação
     if(welcomeTitle && currentUserName) {
         const firstName = currentUserName.split(' ')[0];
         welcomeTitle.innerHTML = `Olá, <span style="color:#FFD700">${firstName}</span>!`;
     }
 
+    // Inicia
     loadDashboard();
 
     // ==========================================
-    // 3. GERENCIAMENTO DE DADOS (SEGUINDO O DER)
+    // 2. GERENCIAMENTO DE DADOS (COM PROTEÇÃO)
     // ==========================================
 
     function getLocalEvents() {
         const data = localStorage.getItem(DB_KEY);
-        return data ? JSON.parse(data) : null;
+        if (!data) return null;
+
+        try {
+            const parsed = JSON.parse(data);
+            
+            // TRAVA DE SEGURANÇA:
+            // Se existirem dados, mas eles não tiverem a chave nova (ID_Evento),
+            // significa que é dado velho. Reseta.
+            if (parsed.length > 0 && !parsed[0].hasOwnProperty('ID_Evento')) {
+                console.warn("Dados antigos detectados. Resetando banco de dados local.");
+                localStorage.removeItem(DB_KEY);
+                return null;
+            }
+            return parsed;
+        } catch (e) {
+            return null;
+        }
     }
 
     function saveLocalEvents(events) {
@@ -60,88 +70,67 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function loadDashboard() {
+        // Spinner
         if(eventsListContainer) {
             eventsListContainer.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-circle-notch fa-spin"></i>
-                    <p>Sincronizando com o Banco de Dados...</p>
-                </div>
-            `;
+                <div style="padding:40px; text-align:center; color:#ccc;">
+                    <i class="fas fa-circle-notch fa-spin"></i> Carregando...
+                </div>`;
         }
 
-        if (USE_API) {
-            // fetch...
-        } else {
-            setTimeout(() => {
-                let allEvents = getLocalEvents();
+        setTimeout(() => {
+            let allEvents = getLocalEvents();
 
-                if (!allEvents) {
-                    allEvents = generateInitialMockData();
-                    saveLocalEvents(allEvents);
-                }
+            // Se vazio ou resetado, cria o Mock Inicial
+            if (!allEvents) {
+                allEvents = generateInitialMockData();
+                saveLocalEvents(allEvents);
+            }
 
-                // FILTRO SQL SIMULADO: SELECT * FROM Evento WHERE FK_Usuario = '...' OR convidado...
-                const myEvents = allEvents.filter(evt => {
-                    // Verifica se é o dono (FK_Usuario)
-                    const isHost = evt.FK_Usuario === currentUserEmail;
-                    
-                    // Verifica se está na lista de convidados (Simulação da Tabela Convidado)
-                    const isGuest = evt.Lista_Convidados && evt.Lista_Convidados.some(g => g.trim() === currentUserEmail);
-                    
-                    return isHost || isGuest;
-                });
+            // FILTRO: Dono ou Convidado
+            const myEvents = allEvents.filter(evt => {
+                const isHost = evt.FK_Usuario === currentUserEmail;
+                // Verifica array de convidados
+                const isGuest = Array.isArray(evt.Lista_Convidados) && 
+                                evt.Lista_Convidados.some(g => g.trim() === currentUserEmail);
+                
+                return isHost || isGuest;
+            });
 
-                // Ordena por Data (Decrescente)
-                myEvents.sort((a, b) => new Date(b.Data_Criacao) - new Date(a.Data_Criacao));
+            // Ordena (Mais recente no topo)
+            myEvents.sort((a, b) => new Date(b.Data_Criacao) - new Date(a.Data_Criacao));
 
-                processData(myEvents);
-            }, 600);
-        }
+            processData(myEvents);
+        }, 500);
     }
 
-    // DADOS SEGUINDO ESTRITAMENTE O DIAGRAMA DAS IMAGENS
     function generateInitialMockData() {
         return [
             {
                 ID_Evento: 101,
                 FK_Usuario: "admin@admin.com", 
                 Titulo: "Festa de Inauguração",
-                Descricao: "Venha celebrar o lançamento da nossa plataforma!",
+                Descricao: "Venha celebrar o lançamento!",
                 Local: "Sede Birthday Fund",
                 Data: "20/12",
                 Hora: "20:00",
-                Tipo: "convite", // Campo lógico para o frontend (não obrigatório no banco, mas útil)
+                Tipo: "convite", 
                 Meta_Arrecadacao: null,
                 Valor_Arrecadado: null,
-                Lista_Convidados: [currentUserEmail], // Simula tabela N:N Convidado
-                Confirmado_Presenca: false, // Simula status na tabela Convidado
-                Data_Criacao: new Date().toISOString()
-            },
-            {
-                ID_Evento: 102,
-                FK_Usuario: currentUserEmail, 
-                Titulo: "Meu Aniversário",
-                Descricao: "Contribua com o que puder para a festa!",
-                Local: "Minha Casa",
-                Data: "15/01",
-                Hora: "19:00",
-                Tipo: "doacao",
-                Meta_Arrecadacao: 1000.00,
-                Valor_Arrecadado: 250.00,
-                Lista_Convidados: [],
-                Confirmado_Presenca: true, 
+                Lista_Convidados: [currentUserEmail], 
+                Confirmado_Presenca: false, 
                 Data_Criacao: new Date().toISOString()
             }
         ];
     }
 
     // ==========================================
-    // 4. RENDERIZAÇÃO (UI)
+    // 3. RENDERIZAÇÃO
     // ==========================================
 
     function processData(events) {
-        // Filtros visuais
-        const invitesCount = events.filter(e => e.FK_Usuario !== currentUserEmail).length; // Se não sou dono, é convite
+        // Stats
+        const invitesCount = events.filter(e => e.FK_Usuario !== currentUserEmail).length;
         const activeCount = events.length; 
 
         if(statInvites) statInvites.innerText = invitesCount;
@@ -156,21 +145,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (events.length === 0) {
             eventsListContainer.innerHTML = `
-                <div class="empty-state">
-                    <i class="fa-regular fa-calendar-xmark"></i>
+                <div class="empty-state" style="text-align:center; padding:30px; color:#888;">
+                    <i class="fa-regular fa-calendar-xmark" style="font-size:2rem; margin-bottom:10px;"></i>
                     <p>Nenhum evento encontrado.</p>
-                    <button class="btn-small" onclick="openCreateModal()">Criar Novo</button>
+                    <button class="btn-small" onclick="openCreateModal()" style="margin-top:10px; padding:8px 20px; background:transparent; border:1px solid white; color:white; border-radius:20px; cursor:pointer;">Criar Novo</button>
                 </div>
             `;
             return;
         }
 
         events.forEach(evt => {
-            // Lógica de UI baseada nos dados do Diagrama
             const isOwner = evt.FK_Usuario === currentUserEmail;
-            
-            // Define se é Doação ou Convite baseado na Meta_Arrecadacao (conforme diagrama)
-            // Se tem Meta > 0, é arrecadação. Se nulo ou 0, é festa comum.
             const isDonation = evt.Meta_Arrecadacao && parseFloat(evt.Meta_Arrecadacao) > 0;
             
             const typeClass = isDonation ? 'donate' : 'invite';
@@ -180,7 +165,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
             const ownerBadge = isOwner ? '<i class="fa-solid fa-crown" style="color:#FFD700; margin-left:5px;" title="Organizador"></i>' : '';
 
-            // Barra de Progresso (Usando Meta_Arrecadacao e Valor_Arrecadado)
             let progressBarHTML = '';
             if (isDonation) {
                 const meta = parseFloat(evt.Meta_Arrecadacao);
@@ -200,13 +184,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 `;
             }
 
-            // Ícone de Check
             let confirmedIcon = '';
-            if (!isDonation && evt.Confirmado_Presenca) {
+            if (!isDonation && evt.Confirmado_Presenca === true) {
                 confirmedIcon = '<i class="fa-solid fa-check-circle" style="color: #4CAF50; margin-left: 5px;" title="Presença Confirmada"></i>';
             }
 
-            // Mapeamento de Campos: evt.Titulo, evt.Data, etc.
             const itemHTML = `
                 <li class="event-item" onclick="window.openEventModal(${evt.ID_Evento})">
                     <div class="date-box ${typeClass}">
@@ -234,7 +216,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==========================================
-    // 5. DETALHES (USANDO NOMES DO DIAGRAMA)
+    // 4. MODAL DETALHES
     // ==========================================
 
     window.openEventModal = function(id) {
@@ -245,7 +227,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const isOwner = evt.FK_Usuario === currentUserEmail;
         const isDonation = evt.Meta_Arrecadacao && parseFloat(evt.Meta_Arrecadacao) > 0;
 
-        // Elementos
         const headerColor = document.getElementById('modalHeaderColor');
         const icon = document.getElementById('modalIcon');
         const badge = document.getElementById('modalBadge');
@@ -253,7 +234,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const actionBtn = document.getElementById('modalActionBtn');
         const descElement = document.querySelector('.modal-description');
 
-        // Preenchimento (Mapeamento Correto)
         document.getElementById('modalTitle').innerText = evt.Titulo;
         document.getElementById('modalDate').innerText = evt.Data;
         document.getElementById('modalTime').innerText = evt.Hora;
@@ -265,23 +245,24 @@ document.addEventListener("DOMContentLoaded", function() {
         }
         descElement.innerText = descText;
 
-        // Reset
         actionBtn.className = "btn-modal-action"; 
         actionBtn.disabled = false;
         actionBtn.onclick = null;
 
         if (isOwner) {
             actionBtn.innerText = "Gerenciar Evento";
-            actionBtn.onclick = () => alert("Painel de gestão (Futuro)");
+            // MANDA PARA A PAGINA DE GERENCIAMENTO COM O ID NA URL
+            actionBtn.onclick = () => {
+                window.location.href = `gerenciamento-eventos.html?editId=${evt.ID_Evento}`;
+            };
         } else if (!isDonation) {
-            // CONVITE
             headerColor.classList.remove('gold-theme');
             icon.className = "fa-solid fa-envelope-open-text";
             badge.innerText = "CONVITE";
             badge.style.color = "#fff";
             donationArea.classList.add('hidden');
 
-            if (evt.Confirmado_Presenca) {
+            if (evt.Confirmado_Presenca === true) {
                 actionBtn.innerHTML = '<i class="fa-solid fa-check"></i> Presença Confirmada';
                 actionBtn.classList.add('confirmed');
             } else {
@@ -289,7 +270,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 actionBtn.onclick = function() { confirmAttendance(evt.ID_Evento); };
             }
         } else {
-            // DOAÇÃO
             headerColor.classList.add('gold-theme');
             icon.className = "fa-solid fa-hand-holding-dollar";
             badge.innerText = "CAMPANHA";
@@ -302,7 +282,6 @@ document.addEventListener("DOMContentLoaded", function() {
             const meta = parseFloat(evt.Meta_Arrecadacao);
             const atual = parseFloat(evt.Valor_Arrecadado || 0);
             const percent = Math.min((atual / meta) * 100, 100);
-            
             document.getElementById('modalProgressBar').style.width = `${percent}%`;
 
             actionBtn.innerText = "Contribuir Agora";
@@ -321,7 +300,6 @@ document.addEventListener("DOMContentLoaded", function() {
             let allEvents = getLocalEvents();
             const idx = allEvents.findIndex(e => e.ID_Evento === id);
             if (idx !== -1) {
-                // Atualiza propriedade seguindo lógica do mock
                 allEvents[idx].Confirmado_Presenca = true;
                 saveLocalEvents(allEvents);
                 
@@ -329,13 +307,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 btn.classList.add('confirmed');
                 btn.onclick = null;
                 
-                loadDashboard();
+                loadDashboard(); // Atualiza lista atrás
             }
         }, 500);
     }
 
     // ==========================================
-    // 6. CRIAÇÃO (MAPEAR FORM PARA SCHEMA DO BANCO)
+    // 5. CRIAÇÃO DE FESTA
     // ==========================================
 
     window.openCreateModal = function() {
@@ -358,9 +336,8 @@ document.addEventListener("DOMContentLoaded", function() {
     createForm.addEventListener('submit', function(e) {
         e.preventDefault();
 
-        // Inputs
         const title = document.getElementById('newTitle').value;
-        const type = document.getElementById('newType').value; // logico frontend
+        const type = document.getElementById('newType').value;
         const date = document.getElementById('newDate').value;
         const time = document.getElementById('newTime').value;
         const loc = document.getElementById('newLocation').value;
@@ -370,13 +347,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
         let guestList = [];
         if(guestsInput) {
-            guestList = guestsInput.split(',').map(email => email.trim());
+            guestList = guestsInput.split(',').map(email => email.trim()).filter(e => e !== "");
         }
 
-        // OBJETO NO FORMATO DO DIAGRAMA
         const newEvent = {
-            ID_Evento: Date.now(), // Mock de ID Auto-Increment
-            FK_Usuario: currentUserEmail, // Chave Estrangeira
+            ID_Evento: Date.now(),
+            FK_Usuario: currentUserEmail,
             Titulo: title,
             Descricao: desc,
             Local: loc,
@@ -384,13 +360,11 @@ document.addEventListener("DOMContentLoaded", function() {
             Hora: time,
             Meta_Arrecadacao: type === 'doacao' ? (parseFloat(metaVal) || 0) : null,
             Valor_Arrecadado: type === 'doacao' ? 0 : null,
-            // Campos lógicos para simulação local (Convidados/Presença)
             Lista_Convidados: guestList,
-            Confirmado_Presenca: true,
+            Confirmado_Presenca: true, // Dono já confirma
             Data_Criacao: new Date().toISOString()
         };
 
-        // Salvar
         let allEvents = getLocalEvents() || [];
         allEvents.push(newEvent);
         saveLocalEvents(allEvents);
@@ -400,7 +374,10 @@ document.addEventListener("DOMContentLoaded", function() {
         alert("Evento criado com sucesso!");
     });
 
-    // Listeners
+    // ==========================================
+    // 6. UTILITÁRIOS
+    // ==========================================
+
     const closeModalBtns = document.querySelectorAll('.close-modal-btn');
     closeModalBtns.forEach(btn => {
         btn.addEventListener('click', () => {
