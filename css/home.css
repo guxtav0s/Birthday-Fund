@@ -28,7 +28,7 @@ body {
 .hidden { display: none !important; }
 
 /* =======================================================
-   2. NAVBAR (MODELO PERFIL.CSS - FULLSCREEN MOBILE)
+   2. NAVBAR
    ======================================================= */
 .navbar {
   display: flex;
@@ -81,8 +81,21 @@ body {
 .user-icon:hover { color: var(--cor-gold); }
 
 .user-greeting { font-weight: bold; color: var(--cor-gold); margin-right: 5px; }
-.auth-link-logout { color: #ff6b6b; cursor: pointer; text-decoration: none; font-weight: bold; font-size: 0.9rem; }
+.auth-link-logout {
+  color: #ff6b6b; 
+  cursor: pointer; 
+  text-decoration: none; 
+  font-weight: bold; 
+  font-size: 0.9rem;
+  border: none;
+  background: transparent;
+  transition: color 0.3s;
+}
 
+.auth-link-logout:hover {
+  color: #ff3333;
+  text-decoration: underline;
+}
 .menu-icon { display: none; font-size: 1.5rem; cursor: pointer; color: white; }
 
 /* =======================================================

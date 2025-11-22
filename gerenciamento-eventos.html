@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meus Eventos - Birthday Fund</title>
+  <title>Painel de Controle - Birthday Fund</title>
+  
   <link rel="stylesheet" href="css/home.css">
   <link rel="stylesheet" href="css/gerenciamento-eventos.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+  <style> .hidden { display: none !important; } </style>
 </head>
 <body>
   
@@ -22,102 +25,126 @@
         <a href="perfil.html">Meu Perfil</a>
       </div>
       <div class="nav-right">
-        <a href="autenticacao.html" class="auth-link">Sair</a>
-      </div>
+        </div>
     </nav>
   </header>
 
   <main class="manage-container">
+    
     <div class="manage-header">
-        <h1>Gerenciar <span style="color: #FFD700;">Eventos</span></h1>
-        <div class="tabs-wrapper">
-            <button class="tab-btn active" id="btnHosted">Meus Eventos</button>
-            <button class="tab-btn" id="btnInvited">Convites</button>
-        </div>
+        <h1>Meus <span style="color: #FFD700;">Eventos</span></h1>
+        <p>Gerencie seus eventos, responda convites e participe de campanhas.</p>
     </div>
 
-    <div id="eventsGrid" class="events-grid"></div>
+    <div class="dashboard-toolbar">
+        <button class="tab-btn active" id="btnHosted">
+            <i class="fa-solid fa-crown"></i> Meus Eventos
+        </button>
+        <button class="tab-btn" id="btnInvited">
+            <i class="fa-solid fa-envelope-open-text"></i> Convites
+        </button>
+        <button class="tab-btn" id="btnDonations">
+            <i class="fa-solid fa-hand-holding-heart"></i> Doações
+        </button>
+    </div>
+
+    <div id="events-grid" class="events-grid-area">
+        </div>
+
   </main>
 
-  <div id="editModal" class="modal-backdrop">
+  <div id="editEventModal" class="modal-backdrop hidden">
     <div class="modal-content">
+      <span class="close-modal-btn">&times;</span>
+      
+      <div class="modal-header-bg">
+        <i class="fa-solid fa-calendar-day" id="modalIcon"></i>
+      </div>
+
+      <div class="modal-body">
+        <h2 id="modalTitleText">Detalhes</h2>
         
-        <div class="modal-header-bg">
-            <h2><i class="fa-solid fa-sliders"></i> Painel do Evento</h2>
-            <span class="close-modal-btn"><i class="fa-solid fa-xmark"></i></span>
-        </div>
+        <form id="editForm">
+            <input type="hidden" id="editId">
+            
+            <div class="form-group">
+                <label>Título</label>
+                <input type="text" id="editTitle" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Data</label>
+                    <input type="text" id="editDate" placeholder="DD/MM" required>
+                </div>
+                <div class="form-group">
+                    <label>Hora</label>
+                    <input type="text" id="editTime" placeholder="HH:MM" required>
+                </div>
+            </div>
 
-        <div class="modal-body">
-            <form id="editEventForm">
-                <input type="hidden" id="editId">
-                
-                <div class="manage-layout">
-                    
-                    <div class="edit-left">
-                        <div class="edit-section">
-                            <h3>Informações Gerais</h3>
-                            <div class="form-group">
-                                <label>Título do Evento</label>
-                                <input type="text" id="editTitulo" required>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Data</label>
-                                    <input type="text" id="editData" required>
-                                </div>
-                                <div class="form-group">
-                                    <label>Hora</label>
-                                    <input type="text" id="editHora" required>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>Localização</label>
-                                <input type="text" id="editLocal" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Descrição / Notas</label>
-                                <textarea id="editDescricao" rows="4"></textarea>
-                            </div>
-                        </div>
+            <div class="form-group">
+                <label>Local</label>
+                <input type="text" id="editLocation" required>
+            </div>
+
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="editDescription" rows="3"></textarea>
+            </div>
+
+            <div id="metaDisplayArea" class="form-group hidden">
+                <label style="color:#FFD700">Progresso</label>
+                <div class="progress-container" style="margin-top:5px;">
+                    <div class="progress-track">
+                        <div class="progress-fill" id="modalProgressFill" style="width:0%"></div>
                     </div>
-
-                    <div class="edit-right">
-                        <div class="edit-section">
-                            <h3>Configurações</h3>
-                            
-                            <div class="form-group hidden" id="editMetaGroup">
-                                <label>Meta de Arrecadação (R$)</label>
-                                <input type="number" id="editMeta">
-                            </div>
-
-                            <div class="form-group">
-                                <label>Convidados (E-mails)</label>
-                                <textarea id="editConvidados" rows="4" placeholder="email1@teste.com, email2@teste.com"></textarea>
-                                <small style="color:#888; display:block; margin-top:5px;">Separe por vírgula.</small>
-                            </div>
-                        </div>
-
-                        <div class="btn-delete-zone">
-                            <h4>Zona de Perigo</h4>
-                            <p>A exclusão é permanente e cancelará o evento para todos os convidados.</p>
-                            <button type="button" id="btnDeleteEvent" class="btn-delete">
-                                <i class="fa-solid fa-trash"></i> Excluir Evento
-                            </button>
-                        </div>
+                    <div class="progress-meta" style="display:flex; justify-content:space-between; color:#ccc; font-size:0.85rem; margin-top:5px;">
+                        <span id="modalRaisedValue">R$ 0</span>
+                        <span id="modalMetaValue">Meta: R$ 0</span>
                     </div>
                 </div>
+            </div>
 
-                <div class="modal-actions-bar">
-                    <button type="button" class="btn-cancel close-modal-btn-action">Cancelar</button>
-                    <button type="submit" class="btn-save"><i class="fa-solid fa-check"></i> Salvar Alterações</button>
+            <div id="hostControls" class="form-group hidden">
+                <label style="color:#FFD700; border-bottom:1px solid #444; padding-bottom:5px; margin-top:10px;">
+                    <i class="fa-solid fa-users-gear"></i> Convidados
+                </label>
+                <div class="invite-input-group">
+                    <input type="email" id="newGuestEmail" placeholder="email@amigo.com">
+                    <button type="button" class="btn-small add-btn" id="btnAddGuest"><i class="fa-solid fa-plus"></i></button>
                 </div>
+                <ul id="guestListDisplay" class="guest-list-mini"></ul>
+            </div>
 
-            </form>
-        </div>
+            <div id="ownerActions" class="modal-actions hidden">
+                <button type="button" class="btn-delete" id="btnDelete">Excluir</button>
+                <button type="submit" class="btn-save">Salvar</button>
+            </div>
+
+            <div id="guestActions" class="modal-actions hidden">
+                <button type="button" class="btn-delete" id="btnDecline">Recusar</button>
+                <button type="button" class="btn-save" id="btnConfirm">Confirmar</button>
+            </div>
+
+            <div id="donationActions" class="modal-actions hidden">
+                <button type="button" class="btn-save btn-donate" id="btnContribute" style="background:#FFD700; color:#1A1F45; width:100%;">
+                    <i class="fa-solid fa-hand-holding-dollar"></i> Contribuir
+                </button>
+            </div>
+
+        </form>
+      </div>
     </div>
   </div>
 
+  <footer>
+    <p>Nossos Contatos</p>
+    <div class="social-icons">
+        </div>
+  </footer>
+
   <script src="js/script.js"></script>
-  <script src="js/gerenciamento-eventos.js"></script>
+  <script src="js/gerenciamento-evento.js"></script>
 </body>
 </html>

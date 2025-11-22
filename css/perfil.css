@@ -115,10 +115,11 @@ body {
   font-weight: bold;
 }
 .auth-link-logout {
-  color: #FFD700;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 1rem;
+  color: #ff6b6b; 
+  cursor: pointer; 
+  text-decoration: none; 
+  font-weight: bold; 
+  font-size: 0.9rem;
 }
 .auth-link-logout:hover {
   text-decoration: underline;

@@ -2,281 +2,409 @@ document.addEventListener("DOMContentLoaded", function() {
     
     const DB_KEY = 'eventsDB';
     const currentUserEmail = sessionStorage.getItem("currentUserEmail");
+    const currentUserName = sessionStorage.getItem("currentUserName");
 
-    // Proteção de Rota
     if (!currentUserEmail) {
-        window.location.href = 'autenticacao.html';
+        window.location.href = "autenticacao.html";
         return;
     }
 
+    // Navbar
+    const navRight = document.querySelector('.nav-right');
+    if(navRight) {
+        navRight.innerHTML = `
+            <span style="margin-right:10px; font-weight:bold; color:#FFD700">Olá, ${currentUserName.split(' ')[0]}</span>
+            <a href="autenticacao.html" class="auth-link" style="border:1px solid white; padding:5px 15px; border-radius:20px; text-decoration:none; font-size:0.9rem;">Sair</a>
+        `;
+    }
+
     // Elementos DOM
-    const grid = document.getElementById('eventsGrid');
+    const grid = document.getElementById('events-grid');
     const btnHosted = document.getElementById('btnHosted');
     const btnInvited = document.getElementById('btnInvited');
+    const btnDonations = document.getElementById('btnDonations');
     
-    // Modal Edição
-    const editModal = document.getElementById('editModal');
-    const editForm = document.getElementById('editEventForm');
-    const btnDelete = document.getElementById('btnDeleteEvent');
-    const closeBtns = document.querySelectorAll('.close-modal-btn');
+    // Modal Elements
+    const editModal = document.getElementById('editEventModal');
+    const editForm = document.getElementById('editForm');
+    const modalTitleText = document.getElementById('modalTitleText');
+    const modalHeaderBg = document.querySelector('.modal-header-bg');
+    const modalIcon = document.getElementById('modalIcon');
+    
+    const inputTitle = document.getElementById('editTitle');
+    const inputDate = document.getElementById('editDate');
+    const inputTime = document.getElementById('editTime');
+    const inputLocation = document.getElementById('editLocation');
+    const inputDescription = document.getElementById('editDescription');
+    const inputId = document.getElementById('editId');
 
-    // Estado Inicial
-    let currentFilter = 'hosted'; // 'hosted' ou 'invited'
+    // Áreas Específicas
+    const metaDisplayArea = document.getElementById('metaDisplayArea');
+    const hostControls = document.getElementById('hostControls');
+    const guestListDisplay = document.getElementById('guestListDisplay');
+    const newGuestInput = document.getElementById('newGuestEmail');
+    const btnAddGuest = document.getElementById('btnAddGuest');
+
+    // Botões de Ação
+    const ownerActions = document.getElementById('ownerActions');
+    const guestActions = document.getElementById('guestActions');
+    const donationActions = document.getElementById('donationActions');
+    
+    const btnDelete = document.getElementById('btnDelete');
+    const btnConfirm = document.getElementById('btnConfirm');
+    const btnDecline = document.getElementById('btnDecline');
+    const btnContribute = document.getElementById('btnContribute');
+    const closeBtn = document.querySelector('.close-modal-btn');
+
+    // Estado
+    let currentTab = 'hosted'; 
+    let tempGuestList = [];
 
     // Inicialização
     init();
 
     function init() {
-        // Configura os botões das abas IMEDIATAMENTE
-        setupTabs();
-        
-        // Carrega a lista
+        // Setup Tabs
+        btnHosted.addEventListener('click', () => switchTab('hosted'));
+        btnInvited.addEventListener('click', () => switchTab('invited'));
+        btnDonations.addEventListener('click', () => switchTab('donations'));
+
+        // Check URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const openId = urlParams.get('editId');
+
         loadAndRender();
 
-        // Verifica se veio redirecionado da home
-        checkUrlParams();
-    }
-
-    // ===========================================
-    // 1. LÓGICA DAS ABAS (TABS)
-    // ===========================================
-    function setupTabs() {
-        if(btnHosted && btnInvited) {
-            btnHosted.addEventListener('click', () => {
-                currentFilter = 'hosted';
-                updateTabClasses();
-                loadAndRender();
-            });
-
-            btnInvited.addEventListener('click', () => {
-                currentFilter = 'invited';
-                updateTabClasses();
-                loadAndRender();
-            });
+        if(openId) {
+            openEventModal(parseInt(openId));
+            window.history.replaceState({}, document.title, "gerenciamento-eventos.html");
         }
     }
 
-    function updateTabClasses() {
-        if (currentFilter === 'hosted') {
-            btnHosted.classList.add('active');
-            btnInvited.classList.remove('active');
-        } else {
-            btnInvited.classList.add('active');
-            btnHosted.classList.remove('active');
-        }
-    }
-
-    // ===========================================
-    // 2. DADOS E RENDERIZAÇÃO
-    // ===========================================
+    // ==========================================
+    // DADOS
+    // ==========================================
     function getEvents() {
-        try {
-            return JSON.parse(localStorage.getItem(DB_KEY)) || [];
-        } catch (e) {
-            return [];
-        }
+        try { return JSON.parse(localStorage.getItem(DB_KEY)) || []; } 
+        catch (e) { return []; }
     }
 
     function saveEvents(events) {
         localStorage.setItem(DB_KEY, JSON.stringify(events));
     }
 
+    function switchTab(tab) {
+        currentTab = tab;
+        
+        btnHosted.classList.toggle('active', tab === 'hosted');
+        btnInvited.classList.toggle('active', tab === 'invited');
+        btnDonations.classList.toggle('active', tab === 'donations');
+        
+        loadAndRender();
+    }
+
+    // ==========================================
+    // RENDERIZAÇÃO DA GRID
+    // ==========================================
     function loadAndRender() {
         const allEvents = getEvents();
         grid.innerHTML = '';
 
         const filteredEvents = allEvents.filter(evt => {
-            // Proteção contra dados corrompidos
-            if (!evt) return false;
-
             const isOwner = evt.FK_Usuario === currentUserEmail;
+            const isCampaign = evt.Meta_Arrecadacao && parseFloat(evt.Meta_Arrecadacao) > 0;
             
-            // Verifica convidados com segurança (se não for array, assume vazio)
             let isGuest = false;
             if (Array.isArray(evt.Lista_Convidados)) {
-                isGuest = evt.Lista_Convidados.some(e => e && e.trim() === currentUserEmail);
+                isGuest = evt.Lista_Convidados.some(email => email && email.trim() === currentUserEmail);
             }
 
-            if (currentFilter === 'hosted') {
-                return isOwner; 
-            } else {
-                return isGuest && !isOwner; 
+            if (currentTab === 'hosted') {
+                return isOwner;
+            } 
+            else if (currentTab === 'invited') {
+                return isGuest && !isOwner && !isCampaign;
+            } 
+            else if (currentTab === 'donations') {
+                return isCampaign && !isOwner;
             }
+            return false;
         });
 
-        // Estado Vazio
         if (filteredEvents.length === 0) {
-            const msg = currentFilter === 'hosted' 
-                ? "Você ainda não criou nenhum evento." 
-                : "Você não tem convites pendentes.";
+            let msg = '';
+            if(currentTab === 'hosted') msg = 'Você ainda não criou nenhum evento.';
+            else if(currentTab === 'invited') msg = 'Nenhum convite de festa pendente.';
+            else msg = 'Nenhuma campanha de doação disponível no momento.';
             
-            grid.innerHTML = `
-                <div class="empty-state">
-                    <i class="fa-regular fa-folder-open"></i>
-                    <p>${msg}</p>
-                </div>`;
+            grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#ccc; padding:40px;">${msg}</p>`;
             return;
         }
 
-        // Renderiza Cards
         filteredEvents.forEach(evt => {
+            const isOwner = evt.FK_Usuario === currentUserEmail;
             const isDonation = evt.Meta_Arrecadacao && parseFloat(evt.Meta_Arrecadacao) > 0;
+            
             const stripClass = isDonation ? 'donate' : 'invite';
-            const roleLabel = currentFilter === 'hosted' ? 'Organizador' : 'Convidado';
-            const roleClass = currentFilter === 'hosted' ? 'role-owner' : 'role-guest';
+            let roleText = '';
+            
+            if (isOwner) roleText = 'Organizador';
+            else if (isDonation) roleText = 'Campanha Aberta';
+            else if (evt.Confirmado_Presenca) roleText = 'Confirmado';
+            else roleText = 'Pendente';
 
-            let buttonsHTML = '';
-            if (currentFilter === 'hosted') {
-                buttonsHTML = `
-                    <button class="btn-card btn-edit" onclick="openEditModal(${evt.ID_Evento})">
-                        <i class="fa-solid fa-pen"></i> Editar
-                    </button>`;
+            // Configuração do Botão do Card
+            let btnText = '', btnClass = '', btnIcon = '';
+            
+            if (isOwner) {
+                btnText = 'Gerenciar'; btnClass = 'btn-edit'; btnIcon = 'fa-pen';
+            } else if (isDonation) {
+                btnText = 'Ver & Doar'; btnClass = 'btn-view'; btnIcon = 'fa-hand-holding-dollar';
             } else {
-                const status = evt.Confirmado_Presenca ? "Confirmado" : "Pendente";
-                const icon = evt.Confirmado_Presenca ? "fa-check" : "fa-clock";
-                buttonsHTML = `
-                    <button class="btn-card btn-view" disabled>
-                        <i class="fa-solid ${icon}"></i> ${status}
-                    </button>`;
+                btnText = 'Responder'; btnClass = 'btn-view'; btnIcon = 'fa-envelope';
             }
 
-            // Formata data com segurança
-            let dia = "--", mes = "";
-            if(evt.Data && evt.Data.includes('/')) {
-                dia = evt.Data.split('/')[0];
-                mes = monthName(evt.Data);
+            // Barra de progresso visual para card
+            let progressHTML = '';
+            if (isDonation) {
+                const meta = parseFloat(evt.Meta_Arrecadacao);
+                const atual = parseFloat(evt.Valor_Arrecadado || 0);
+                const pct = Math.min((atual/meta)*100, 100);
+                progressHTML = `<div style="height:4px; background:#444; border-radius:2px; margin-top:10px;"><div style="width:${pct}%; height:100%; background:#FFD700; border-radius:2px;"></div></div>`;
             }
 
             const card = document.createElement('div');
             card.className = 'manage-card';
             card.innerHTML = `
-                <div class="card-strip ${stripClass}"></div>
-                
-                <div class="card-head">
+                <div class="status-strip ${stripClass}"></div>
+                <div class="card-header">
                     <div class="date-badge">
-                        <span class="d">${dia}</span>
-                        <span class="m">${mes}</span>
+                        <span class="d">${evt.Data.split('/')[0]}</span>
+                        <span class="m">${monthName(evt.Data)}</span>
                     </div>
-                    <span class="role-badge ${roleClass}">${roleLabel}</span>
+                    <div class="role-badge">${roleText}</div>
                 </div>
-
-                <div class="card-main">
-                    <h3>${evt.Titulo || "Sem Título"}</h3>
-                    <div class="info-row"><i class="fa-regular fa-clock"></i> ${evt.Hora || "--:--"}</div>
-                    <div class="info-row"><i class="fa-solid fa-location-dot"></i> ${evt.Local || "Local não definido"}</div>
+                <div class="card-body">
+                    <h3>${evt.Titulo}</h3>
+                    <p><i class="fa-regular fa-clock"></i> ${evt.Hora}</p>
+                    <p><i class="fa-solid fa-location-dot"></i> ${evt.Local}</p>
+                    ${progressHTML}
                 </div>
-
-                <div class="card-foot">
-                    ${buttonsHTML}
+                <div class="card-actions">
+                    <button class="btn-action ${btnClass}" onclick="window.openEventModal(${evt.ID_Evento})">
+                        <i class="fa-solid ${btnIcon}"></i> ${btnText}
+                    </button>
                 </div>
             `;
             grid.appendChild(card);
         });
     }
 
-    // ===========================================
-    // 3. LÓGICA DE URL E MODAL
-    // ===========================================
-    function checkUrlParams() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const editId = urlParams.get('editId');
-
-        if (editId) {
-            currentFilter = 'hosted';
-            updateTabClasses();
-            loadAndRender();
-            openEditModal(parseInt(editId));
-            // Limpa URL
-            window.history.replaceState({}, document.title, "gerenciamento-eventos.html");
-        }
-    }
-
-    // Torna global para o HTML acessar
-    window.openEditModal = function(id) {
+    // ==========================================
+    // MODAL INTELIGENTE
+    // ==========================================
+    
+    window.openEventModal = function(id) {
         const allEvents = getEvents();
         const evt = allEvents.find(e => e.ID_Evento === id);
         if (!evt) return;
 
-        // Preenche inputs
-        document.getElementById('editId').value = evt.ID_Evento;
-        document.getElementById('editTitulo').value = evt.Titulo;
-        document.getElementById('editData').value = evt.Data;
-        document.getElementById('editHora').value = evt.Hora;
-        document.getElementById('editLocal').value = evt.Local;
-        document.getElementById('editDescricao').value = evt.Descricao || "";
-        
-        // Convidados
-        document.getElementById('editConvidados').value = (evt.Lista_Convidados || []).join(', ');
+        const isOwner = evt.FK_Usuario === currentUserEmail;
+        const isDonation = evt.Meta_Arrecadacao && parseFloat(evt.Meta_Arrecadacao) > 0;
 
-        // Meta
-        const metaGroup = document.getElementById('editMetaGroup');
-        if (evt.Meta_Arrecadacao && parseFloat(evt.Meta_Arrecadacao) > 0) {
-            metaGroup.classList.remove('hidden');
-            document.getElementById('editMeta').value = evt.Meta_Arrecadacao;
+        // 1. Preenche Inputs
+        inputId.value = evt.ID_Evento;
+        inputTitle.value = evt.Titulo;
+        inputDate.value = evt.Data;
+        inputTime.value = evt.Hora;
+        inputLocation.value = evt.Local;
+        inputDescription.value = evt.Descricao || "";
+
+        const inputs = editForm.querySelectorAll('input:not([type=hidden]), textarea');
+
+        // 2. Define Estilos e Áreas visíveis
+        ownerActions.classList.add('hidden');
+        guestActions.classList.add('hidden');
+        donationActions.classList.add('hidden');
+        hostControls.classList.add('hidden');
+        metaDisplayArea.classList.add('hidden');
+
+        // Reset header style
+        modalHeaderBg.style.background = "linear-gradient(135deg, #5b2be0, #8A2BE2)";
+        modalIcon.className = "fa-solid fa-calendar-day";
+        modalIcon.style.color = "rgba(255,255,255,0.3)";
+
+        if (isOwner) {
+            // === DONO ===
+            modalTitleText.innerText = "Gerenciar Evento";
+            inputs.forEach(i => i.disabled = false);
+            
+            hostControls.classList.remove('hidden'); 
+            ownerActions.classList.remove('hidden'); 
+            
+            tempGuestList = Array.isArray(evt.Lista_Convidados) ? [...evt.Lista_Convidados] : [];
+            renderGuestList();
+
+        } else if (isDonation) {
+            // === DOADOR (PÚBLICO) ===
+            modalTitleText.innerText = "Campanha Solidária";
+            inputs.forEach(i => i.disabled = true);
+            
+            donationActions.classList.remove('hidden'); 
+            metaDisplayArea.classList.remove('hidden'); 
+            
+            modalHeaderBg.style.background = "linear-gradient(135deg, #FFD700, #FDB931)";
+            modalIcon.className = "fa-solid fa-hand-holding-heart";
+            modalIcon.style.color = "#1A1F45";
+
+            const meta = parseFloat(evt.Meta_Arrecadacao);
+            const atual = parseFloat(evt.Valor_Arrecadado || 0);
+            const pct = Math.min((atual/meta)*100, 100);
+            document.getElementById('modalProgressFill').style.width = `${pct}%`;
+            document.getElementById('modalRaisedValue').innerText = `Arrecadado: R$ ${atual}`;
+            document.getElementById('modalMetaValue').innerText = `Meta: R$ ${meta}`;
+
+            // Ação Contribuir (Sem Prompt)
+            btnContribute.onclick = () => {
+                // Simulação: Adiciona 50 reais automaticamente
+                donateToEvent(id, 50.00);
+            };
+
         } else {
-            metaGroup.classList.add('hidden');
+            // === CONVIDADO (FESTA PRIVADA) ===
+            modalTitleText.innerText = "Convite de Festa";
+            inputs.forEach(i => i.disabled = true);
+            guestActions.classList.remove('hidden'); 
+
+            if (evt.Confirmado_Presenca) {
+                btnConfirm.innerHTML = '<i class="fa-solid fa-check"></i> Confirmado';
+                btnConfirm.style.background = "#4CAF50";
+                btnConfirm.disabled = true;
+            } else {
+                btnConfirm.innerHTML = 'Confirmar Presença';
+                btnConfirm.style.background = "#5b2be0";
+                btnConfirm.disabled = false;
+                btnConfirm.onclick = () => rsvpEvent(id, true);
+            }
+            
+            btnDecline.onclick = () => rsvpEvent(id, false);
         }
 
-        editModal.classList.add('active');
+        editModal.classList.remove('hidden');
     };
 
-    // Salvar Edição
-    editForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+    window.closeEditModal = function() {
+        editModal.classList.add('hidden');
+    };
+
+    // ==========================================
+    // LÓGICA DE DOAÇÃO (Automática)
+    // ==========================================
+    function donateToEvent(id, amount) {
+        let allEvents = getEvents();
+        const idx = allEvents.findIndex(e => e.ID_Evento === id);
         
-        const id = parseInt(document.getElementById('editId').value);
+        if (idx !== -1) {
+            const atual = parseFloat(allEvents[idx].Valor_Arrecadado || 0);
+            allEvents[idx].Valor_Arrecadado = atual + amount;
+            
+            saveEvents(allEvents);
+            alert(`Chave PIX gerada com sucesso!\n(Simulação: Doação de R$ ${amount} registrada)`);
+            closeEditModal();
+            loadAndRender();
+        }
+    }
+
+    // ==========================================
+    // LÓGICA DE RSVP
+    // ==========================================
+    function rsvpEvent(id, status) {
         let allEvents = getEvents();
         const idx = allEvents.findIndex(e => e.ID_Evento === id);
 
-        if (idx !== -1) {
-            allEvents[idx].Titulo = document.getElementById('editTitulo').value;
-            allEvents[idx].Data = document.getElementById('editData').value;
-            allEvents[idx].Hora = document.getElementById('editHora').value;
-            allEvents[idx].Local = document.getElementById('editLocal').value;
-            allEvents[idx].Descricao = document.getElementById('editDescricao').value;
-
-            const guestsStr = document.getElementById('editConvidados').value;
-            if(guestsStr) {
-                allEvents[idx].Lista_Convidados = guestsStr.split(',').map(s => s.trim()).filter(s => s !== "");
+        if(idx !== -1) {
+            if(status) {
+                allEvents[idx].Confirmado_Presenca = true;
+                alert("Presença confirmada!");
             } else {
-                allEvents[idx].Lista_Convidados = [];
+                if(confirm("Recusar convite? Ele será removido.")) {
+                    allEvents[idx].Lista_Convidados = allEvents[idx].Lista_Convidados.filter(e => e !== currentUserEmail);
+                } else return;
             }
-
-            const metaInput = document.getElementById('editMeta');
-            if (!metaInput.parentElement.classList.contains('hidden')) {
-                allEvents[idx].Meta_Arrecadacao = parseFloat(metaInput.value);
-            }
-
             saveEvents(allEvents);
-            editModal.classList.remove('active');
+            closeEditModal();
             loadAndRender();
-            alert('Evento atualizado com sucesso!');
         }
-    });
+    }
 
-    // Excluir
-    if(btnDelete) {
-        btnDelete.addEventListener('click', () => {
-            const id = parseInt(document.getElementById('editId').value);
-            if (confirm('Tem certeza que deseja excluir este evento?')) {
-                let allEvents = getEvents();
-                const newEvents = allEvents.filter(e => e.ID_Evento !== id);
-                saveEvents(newEvents);
-                editModal.classList.remove('active');
-                loadAndRender();
-            }
+    // ==========================================
+    // EDIÇÃO DO DONO
+    // ==========================================
+    if(btnAddGuest) {
+        btnAddGuest.addEventListener('click', () => {
+            const email = newGuestInput.value.trim();
+            if (email && email.includes('@')) {
+                if (!tempGuestList.includes(email)) {
+                    tempGuestList.push(email);
+                    renderGuestList();
+                    newGuestInput.value = '';
+                } else alert('Já adicionado.');
+            } else alert('E-mail inválido.');
         });
     }
 
-    // Fechar Modal
-    closeBtns.forEach(btn => btn.addEventListener('click', () => editModal.classList.remove('active')));
-    
+    function renderGuestList() {
+        guestListDisplay.innerHTML = '';
+        tempGuestList.forEach((email, index) => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${email}</span><i class="fa-solid fa-trash remove-guest-icon" onclick="removeGuestFromTemp(${index})"></i>`;
+            guestListDisplay.appendChild(li);
+        });
+    }
+
+    window.removeGuestFromTemp = function(index) {
+        tempGuestList.splice(index, 1);
+        renderGuestList();
+    };
+
+    editForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = parseInt(inputId.value);
+        let allEvents = getEvents();
+        const idx = allEvents.findIndex(ev => ev.ID_Evento === id);
+
+        if (idx !== -1) {
+            allEvents[idx].Titulo = inputTitle.value;
+            allEvents[idx].Data = inputDate.value;
+            allEvents[idx].Hora = inputTime.value;
+            allEvents[idx].Local = inputLocation.value;
+            allEvents[idx].Descricao = inputDescription.value;
+            allEvents[idx].Lista_Convidados = tempGuestList; 
+
+            saveEvents(allEvents);
+            closeEditModal();
+            loadAndRender();
+            alert('Evento atualizado!');
+        }
+    });
+
+    btnDelete.addEventListener('click', () => {
+        if(confirm("Excluir evento permanentemente?")) {
+            const id = parseInt(inputId.value);
+            let allEvents = getEvents();
+            allEvents = allEvents.filter(e => e.ID_Evento !== id);
+            saveEvents(allEvents);
+            closeEditModal();
+            loadAndRender();
+        }
+    });
+
+    // Fechar ao clicar fora
     window.addEventListener('click', (e) => {
-        if (e.target === editModal) editModal.classList.remove('active');
+        if (e.target === editModal) closeEditModal();
     });
 
     function monthName(dateStr) {
-        if(!dateStr || !dateStr.includes('/')) return "";
         const monthMap = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
         const parts = dateStr.split('/');
         return parts.length > 1 ? monthMap[parseInt(parts[1]) - 1] : "";
