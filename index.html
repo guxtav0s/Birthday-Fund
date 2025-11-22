@@ -3,9 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Birthday Fund</title>
+  <title>Birthday Fund - Início</title>
   <link rel="stylesheet" href="css/home.css">
+  <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+  <style>
+    /* Pequeno ajuste utilitário para o Javascript ocultar/mostrar telas */
+    .hidden { display: none !important; }
+  </style>
 </head>
 <body>
   
@@ -13,7 +19,10 @@
     <div class="menu-icon" onclick="toggleMenu()">☰</div>
     
     <div class="logo">
-      <a href="index.html"><span><i class="fa-solid fa-cake-candles"></i> Birthday Fund</span></a>
+      <a href="index.html">
+        <i class="fa-solid fa-cake-candles"></i>
+        <span>Birthday Fund</span>
+      </a>
     </div>
     
     <nav id="navLinks">
@@ -30,63 +39,180 @@
   </header>
 
   <main class="hero" id="heroDefault">
-    <h1>Birthday Fund: Organize a festa.<br>Arrecade o presente. Tudo via PIX.</h1>
-    <button onclick="window.location.href='sobre.html'">Descubra Quem Somos Nós!</button>
+    <h1>Birthday Fund: Organize a festa.<br>Arrecade o presente.<br><span style="color: #FFD700;">Tudo via Pix.</span></h1>
+    <p style="font-size: 1.2rem; color: #ddd; margin-bottom: 30px;">A maneira mais fácil de juntar a galera e garantir o presente dos sonhos.</p>
+    <button onclick="window.location.href='autenticacao.html'">Começar Agora</button>
   </main>
 
-  <!-- HERO LOGADA (DIVIDIDA) - INICIALMENTE OCULTA -->
-  <main class="hero-logged" id="heroLogged" style="display: none;">
+  <main class="hero-logged hidden" id="heroLogged">
     
-    <!-- LADO ESQUERDO (TEXTO) -->
-    <div class="hero-left">
-      <h1>Bem-vindo de volta!</h1>
-      <p>Organize suas festas e acompanhe seus presentes em tempo real.</p>
-      <button onclick="window.location.href='sobre.html'">Descubra Quem Somos Nós!</button>
-    </div>
+    <section class="hero-left">
+      <h1 id="welcomeTitle">Olá!</h1>
+      <p>Confira seus convites pendentes e gerencie suas campanhas ativas.</p>
+      
+      <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+        <button onclick="openCreateModal()" style="padding: 12px 25px; font-size: 1rem;">
+          <i class="fa-solid fa-calendar-plus"></i> Criar Festa
+        </button>
+      </div>
 
-    <!-- LADO DIREITO (DASHBOARD) -->
-    <div class="hero-right">
-        <div class="dashboard-card">
-            <h3><i class="fa-solid fa-bell"></i> Notificações</h3>
-            <ul class="notification-list">
-                <li>
-                    <span class="highlight">Convite!</span> Você foi convidado para o aniversário de <strong>Ana Clara</strong>.
-                    <a href="#" class="action-link">Ver</a>
-                </li>
-                <li>
-                    <span class="highlight">Lembrete:</span> O aniversário de <strong>João Pedro</strong> é amanhã!
-                    <a href="#" class="action-link">Doar</a>
-                </li>
-            </ul>
+      <div class="dashboard-card" style="display: inline-block; padding: 10px 20px;">
+        <i class="fa-solid fa-bullhorn" style="color: #FFD700; margin-right: 10px;"></i>
+        <span>Novidade: PIX Automático disponível!</span>
+      </div>
+    </section>
+
+    <section class="hero-right">
+      
+      <div class="dashboard-grid">
+        <div class="mini-card">
+          <i class="fa-solid fa-envelope"></i>
+          <h4 id="statInvites">0</h4>
+          <p style="font-size: 0.9rem; font-weight: normal;">Novos Convites</p>
+        </div>
+        <div class="mini-card">
+          <i class="fa-solid fa-coins"></i>
+          <h4 id="statActive">0</h4>
+          <p style="font-size: 0.9rem; font-weight: normal;">Festas Ativas</p>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <h3><i class="fa-solid fa-calendar-alt"></i> Próximos Eventos</h3>
+        <ul class="notification-list" id="eventsList">
+          <li style="justify-content: center; color: #aaa;">Carregando...</li>
+        </ul>
+      </div>
+
+    </section>
+  
+
+  <div id="eventModal" class="modal-backdrop">
+    <div class="modal-content">
+      <span class="close-modal-btn">&times;</span>
+      
+      <div class="modal-header-bg" id="modalHeaderColor">
+        <i class="fa-solid fa-calendar-day" id="modalIcon"></i>
+      </div>
+
+      <div class="modal-body">
+        <span class="modal-badge" id="modalBadge">TIPO</span>
+        <h2 id="modalTitle">Título do Evento</h2>
+        
+        <div class="modal-info-grid">
+          <div class="info-item">
+            <i class="fa-regular fa-calendar"></i>
+            <div>
+              <small>Data</small>
+              <strong id="modalDate">--/--</strong>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="fa-regular fa-clock"></i>
+            <div>
+              <small>Horário</small>
+              <strong id="modalTime">--:--</strong>
+            </div>
+          </div>
+          <div class="info-item full-width">
+            <i class="fa-solid fa-location-dot"></i>
+            <div>
+              <small>Localização</small>
+              <strong id="modalLocation">--</strong>
+            </div>
+          </div>
         </div>
 
-        <div class="dashboard-grid">
-            <div class="mini-card">
-                <i class="fa-solid fa-gift"></i>
-                <h4>Meus Eventos</h4>
-                <p>2 Ativos</p>
+        <div id="modalDonationArea" class="hidden">
+            <div class="modal-progress-label">
+                <span>Arrecadado: <strong id="modalArrecadado">R$ 0</strong></span>
+                <span>Meta: <strong id="modalMeta">R$ 0</strong></span>
             </div>
-            <div class="mini-card">
-                <i class="fa-solid fa-envelope-open-text"></i>
-                <h4>Convites</h4>
-                <p>1 Novo</p>
+            <div class="progress-track">
+                <div class="progress-fill" id="modalProgressBar" style="width: 0%"></div>
             </div>
         </div>
-    </div>
 
+        <p class="modal-description">Carregando detalhes...</p>
+
+        <button id="modalActionBtn" class="btn-modal-action">Ação</button>
+      </div>
+    </div>
+  </div>
+  <div id="createEventModal" class="modal-backdrop">
+    <div class="modal-content">
+        <span class="close-modal-btn" onclick="closeCreateModal()">&times;</span>
+        
+        <div class="modal-header-bg">
+            <i class="fa-solid fa-pen-to-square"></i>
+        </div>
+
+        <div class="modal-body text-left">
+            <h2 style="text-align: center; margin-bottom: 20px;">Nova Festa</h2>
+            
+            <form id="createEventForm">
+                
+                <div class="form-group">
+                    <label>Nome do Evento</label>
+                    <input type="text" id="newTitle" placeholder="Ex: Churrasco da Turma" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Tipo de Evento</label>
+                    <select id="newType" onchange="toggleMetaField()">
+                        <option value="convite">Festa (Convite)</option>
+                        <option value="doacao">Campanha (Arrecadação)</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="text" id="newDate" placeholder="DD/MM" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hora</label>
+                        <input type="text" id="newTime" placeholder="HH:MM" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Localização</label>
+                    <input type="text" id="newLocation" placeholder="Ex: Salão de Festas" required>
+                </div>
+
+                <div class="form-group">
+                  <label>Convidados (E-mails separados por vírgula)</label>
+                  <input type="text" id="newGuests" placeholder="ana@email.com, joao@email.com">
+                  <small style="color: #aaa; font-size: 0.75rem;">Estes usuários verão o evento no dashboard deles.</small>
+              </div>
+
+                <div class="form-group hidden" id="metaFieldGroup">
+                    <label>Meta de Arrecadação (R$)</label>
+                    <input type="number" id="newMeta" placeholder="0,00">
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea id="newDescription" rows="3" placeholder="Detalhes do evento..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-modal-action" style="margin-top: 10px;">Criar Evento</button>
+            </form>
+        </div>
+    </div>
+</div>
   </main>
 
   <footer>
     <p>Nossos Contatos</p>
     <div class="social-icons">
-      <a href="https://www.facebook.com/unit.br/?locale=pt_BR" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
-      <a href="https://www.instagram.com/unit_br/" target="_blank"><i class="fa-brands fa-instagram"></i></a>
-      <a href="https://www.linkedin.com/school/unit-br/" target="_blank"><i class="fa-brands fa-linkedin-in"></i></a>
-      <a href="https://x.com/unit_br" target="_blank"><i class="fa-brands fa-twitter"></i></a>
+      <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+      <a href="#"><i class="fa-brands fa-instagram"></i></a>
+      <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
     </div>
   </footer>
-
-  <script src="js/script.js"></script>
-
+  <script src="js/script.js"></script> 
+  <script src="js/dashboard.js"></script>
 </body>
 </html>

@@ -1,119 +1,125 @@
 document.addEventListener("DOMContentLoaded", function() {
 
+    // Elementos do DOM
     const form = document.getElementById("perfilForm");
     const profileUserName = document.getElementById("profileUserName");
     const profileUserHandle = document.getElementById("profileUserHandle");
+    
     const inputNome = document.getElementById("nome");
     const inputUsuario = document.getElementById("usuario");
     const inputEmail = document.getElementById("email");
     const inputSenhaAtual = document.getElementById("senhaAtual");
     const inputNovaSenha = document.getElementById("novaSenha");
     const inputConfirmarSenha = document.getElementById("confirmarSenha");
+    
     const checkMostrarSenha = document.getElementById("mostrar-senha");
     const mensagemGeral = document.getElementById("mensagemGeral");
-    
-    function carregarPerfilUsuario() {
-        const userName = sessionStorage.getItem("currentUserName");
-        const userEmail = sessionStorage.getItem("currentUserEmail");
-        const userHandle = sessionStorage.getItem("currentUserHandle");
 
-        if (userName && userEmail && userHandle) {
-            profileUserName.textContent = userName;
-            profileUserHandle.textContent = `@${userHandle}`;
-            inputNome.value = userName;
-            inputUsuario.value = userHandle;
-            inputEmail.value = userEmail;
-        } else {
-            window.location.href = "autenticacao.html";
-        }
+    // Verifica Sessão
+    const sessionEmail = sessionStorage.getItem("currentUserEmail");
+    if (!sessionEmail) {
+        window.location.href = "autenticacao.html";
+        return;
     }
 
-    checkMostrarSenha.addEventListener("change", function() {
-        const isChecked = this.checked;
-        inputSenhaAtual.type = isChecked ? "text" : "password";
-        inputNovaSenha.type = isChecked ? "text" : "password";
-        inputConfirmarSenha.type = isChecked ? "text" : "password";
-    });
+    // ==========================================
+    // 1. CARREGAR DADOS DO BANCO
+    // ==========================================
+    let usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
+    let currentUser = usersDB.find(u => u.Email === sessionEmail);
 
+    // Fallback para Admin Hardcoded
+    if (!currentUser && sessionEmail === 'admin@admin.com') {
+        currentUser = { 
+            Nome: "Administrador", 
+            Email: "admin@admin.com", 
+            Usuario_Handle: "admin", 
+            Senha: "admin" 
+        };
+    }
+
+    if (currentUser) {
+        // Preenche a tela com os dados do objeto DER
+        profileUserName.textContent = currentUser.Nome;
+        profileUserHandle.textContent = `@${currentUser.Usuario_Handle}`;
+        
+        inputNome.value = currentUser.Nome;
+        inputUsuario.value = currentUser.Usuario_Handle || "";
+        inputEmail.value = currentUser.Email; // Readonly
+    }
+
+    // ==========================================
+    // 2. SALVAR ALTERAÇÕES
+    // ==========================================
     form.addEventListener("submit", function(e) {
         e.preventDefault();
-        salvarPerfil();
-    });
-
-    function salvarPerfil() {
+        let alteracoes = false;
         mensagemGeral.textContent = "";
-        const emailAtual = sessionStorage.getItem("currentUserEmail");
-        const usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
-        const userIndex = usersDB.findIndex(user => user.email === emailAtual);
 
-        if (userIndex === -1) {
-            mensagemGeral.textContent = "Erro: Utilizador não encontrado.";
-            mensagemGeral.style.color = "#ff4d4d";
-            return;
+        // A. Alteração de Dados Cadastrais
+        if (inputNome.value !== currentUser.Nome) {
+            currentUser.Nome = inputNome.value;
+            alteracoes = true;
+        }
+        if (inputUsuario.value !== currentUser.Usuario_Handle) {
+            currentUser.Usuario_Handle = inputUsuario.value;
+            alteracoes = true;
         }
 
-        const usuario = usersDB[userIndex];
-        
-        const nomeAtualizado = inputNome.value;
-        const usuarioAtualizado = inputUsuario.value;
-        const senhaAtual = inputSenhaAtual.value;
-        const novaSenha = inputNovaSenha.value;
-        const confirmarSenha = inputConfirmarSenha.value;
-
-        let alteracoesFeitas = false;
-
-        if (usuario.nome !== nomeAtualizado || usuario.usuario !== usuarioAtualizado) {
-            usuario.nome = nomeAtualizado;
-            usuario.usuario = usuarioAtualizado;
-            alteracoesFeitas = true;
-        }
-
-        if (senhaAtual || novaSenha || confirmarSenha) {
-            if (senhaAtual !== usuario.senha) {
-                mensagemGeral.textContent = "A 'Senha atual' está incorreta.";
-                mensagemGeral.style.color = "#ff4d4d";
+        // B. Alteração de Senha
+        if (inputNovaSenha.value) {
+            // Validações
+            if (inputSenhaAtual.value !== currentUser.Senha) {
+                mensagemGeral.textContent = "Senha atual incorreta.";
+                mensagemGeral.style.color = "red";
                 return;
             }
-            if (novaSenha.length < 8) {
-                mensagemGeral.textContent = "A 'Nova senha' deve ter pelo menos 8 caracteres.";
-                mensagemGeral.style.color = "#ff4d4d";
-                return;
-            }
-            if (novaSenha !== confirmarSenha) {
+            if (inputNovaSenha.value !== inputConfirmarSenha.value) {
                 mensagemGeral.textContent = "As novas senhas não coincidem.";
-                mensagemGeral.style.color = "#ff4d4d";
-                return;
-            }
-            if (novaSenha === usuario.senha) {
-                mensagemGeral.textContent = "A nova senha não pode ser igual à senha antiga.";
-                mensagemGeral.style.color = "#ff4d4d";
+                mensagemGeral.style.color = "red";
                 return;
             }
             
-            usuario.senha = novaSenha;
-            alteracoesFeitas = true;
+            currentUser.Senha = inputNovaSenha.value;
+            alteracoes = true;
         }
 
-        if (alteracoesFeitas) {
-            localStorage.setItem("usersDB", JSON.stringify(usersDB));
-            sessionStorage.setItem("currentUserName", usuario.nome);
-            sessionStorage.setItem("currentUserHandle", usuario.usuario);
+        // C. Persistência
+        if (alteracoes) {
+            // Se não for o admin fake, salva no localStorage
+            if (sessionEmail !== 'admin@admin.com') {
+                const index = usersDB.findIndex(u => u.Email === sessionEmail);
+                if (index !== -1) {
+                    usersDB[index] = currentUser;
+                    localStorage.setItem("usersDB", JSON.stringify(usersDB));
+                }
+            }
 
+            // Atualiza Sessão (para refletir no header imediatamente)
+            sessionStorage.setItem("currentUserName", currentUser.Nome);
+            sessionStorage.setItem("currentUserHandle", currentUser.Usuario_Handle);
+
+            // Feedback
             mensagemGeral.textContent = "Alterações salvas com sucesso!";
-            mensagemGeral.style.color = "#4CAF50";
+            mensagemGeral.style.color = "green";
             
+            // Limpa campos de senha
             inputSenhaAtual.value = "";
             inputNovaSenha.value = "";
             inputConfirmarSenha.value = "";
-            
-            setTimeout(() => {
-                window.location.reload(); 
-            }, 1500);
-        } else {
-            mensagemGeral.textContent = "Nenhuma alteração detetada.";
-            mensagemGeral.style.color = "#ffcc00";
-        }
-    }
 
-    carregarPerfilUsuario();
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            mensagemGeral.textContent = "Nenhuma alteração detectada.";
+            mensagemGeral.style.color = "#FFD700";
+        }
+    });
+
+    // Toggle Mostrar Senha
+    checkMostrarSenha.addEventListener("change", function() {
+        const type = this.checked ? "text" : "password";
+        inputSenhaAtual.type = type;
+        inputNovaSenha.type = type;
+        inputConfirmarSenha.type = type;
+    });
 });
