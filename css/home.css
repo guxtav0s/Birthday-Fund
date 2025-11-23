@@ -149,7 +149,7 @@ button:hover { transform: scale(1.05); }
 }
 
 /* =======================================================
-   4. SOBRE (CARTÕES FLUTUANTES RESTAURADOS)
+   4. SOBRE SECTION
    ======================================================= */
 .sobre {
     flex: 1; display: flex; padding: 0 10%; align-items: center; justify-content: space-between; gap: 40px;
@@ -157,7 +157,7 @@ button:hover { transform: scale(1.05); }
 
 .content-left { flex: 1; padding-right: 50px; }
 .content-left h2 { font-size: 3rem; margin-bottom: 20px; }
-.content-left p { font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px; color: #e0e0e0; }
+.content-left p { font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px; color: #e0e0e0; font-family: 'Arial', sans-serif;}
 
 .content-right {
     flex: 1;

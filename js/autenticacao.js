@@ -1,366 +1,255 @@
 document.addEventListener("DOMContentLoaded", function() {
 
+    // ==========================================
+    // 1. SELETORES E NAVEGAÇÃO
+    // ==========================================
     const tabLogin = document.getElementById("tabLogin");
     const tabRegister = document.getElementById("tabRegister");
+    
+    const loginFormContainer = document.getElementById("loginFormContainer");
+    const registerFormContainer = document.getElementById("registerFormContainer");
+    
     const loginForm = document.getElementById("loginForm");
     const registerForm = document.getElementById("registerForm");
+    
     const switchToRegister = document.getElementById("switchToRegister");
     const switchToLogin = document.getElementById("switchToLogin");
-    
-    const slider = document.querySelector(".form-slider");
 
-    function showForm(formToShow, tabToActivate) {
-        tabLogin.classList.remove("active");
-        tabRegister.classList.remove("active");
-        
-        tabToActivate.classList.add("active");
+    // Inputs Login
+    const loginEmail = document.getElementById("login-email");
+    const loginSenha = document.getElementById("login-senha");
+    const loginBtn = document.getElementById("login-btn");
+    const loginError = document.getElementById("login-geral-error");
+    const rememberMe = document.getElementById("rememberMe");
 
-        if (formToShow === "register") {
-            slider.classList.add("show-register");
-        } else {
-            slider.classList.remove("show-register");
-        }
-    }
-
-    tabLogin.addEventListener("click", () => showForm("login", tabLogin));
-    tabRegister.addEventListener("click", () => showForm("register", tabRegister));
-    switchToRegister.addEventListener("click", () => showForm("register", tabRegister));
-    switchToLogin.addEventListener("click", () => showForm("login", tabLogin));
-
-    
+    // Inputs Registro
     const regNome = document.getElementById("reg-nome");
     const regEmail = document.getElementById("reg-email");
     const regUsuario = document.getElementById("reg-usuario");
     const regSenha = document.getElementById("reg-senha");
-    const regConfirmarSenha = document.getElementById("reg-confirmar-senha");
-    const regMostrarSenha = document.getElementById("reg-mostrar-senha");
+    const regConfirmar = document.getElementById("reg-confirmar-senha");
     const regBtn = document.getElementById("reg-btn");
-
-    const regNomeError = document.getElementById("reg-nome-error");
-    const regEmailError = document.getElementById("reg-email-error");
-    const regUsuarioError = document.getElementById("reg-usuario-error");
-    const regSenhaError = document.getElementById("reg-senha-error");
-    const regConfirmarSenhaError = document.getElementById("reg-confirmar-senha-error");
     const regGeralError = document.getElementById("reg-geral-error");
+    const regSenhaError = document.getElementById("reg-senha-error");
+    const regConfirmarError = document.getElementById("reg-confirmar-senha-error");
 
-    const regValidacao = {
-        nome: false,
-        email: false,
-        usuario: false,
-        senha: false,
-        confirmar: false
-    };
-
-    function regValidarNome() {
-        if (regNome.value.trim().length < 3) {
-            regNomeError.textContent = "Nome completo é obrigatório.";
-            regNomeError.style.display = "block";
-            regValidacao.nome = false;
-        } else {
-            regNomeError.style.display = "none";
-            regValidacao.nome = true;
-        }
-        regAtualizarBotao();
-    }
-    
-    function regValidarEmail() {
-        const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!regexEmail.test(regEmail.value)) {
-            regEmailError.textContent = "Por favor, insira um e-mail válido.";
-            regEmailError.style.display = "block";
-            regValidacao.email = false;
-        } else {
-            regEmailError.style.display = "none";
-            regValidacao.email = true;
-        }
-        regAtualizarBotao();
-    }
-    
-    function regValidarUsuario() {
-        if (regUsuario.value.trim().length < 3) {
-            regUsuarioError.textContent = "Nome de usuário é obrigatório.";
-            regUsuarioError.style.display = "block";
-            regValidacao.usuario = false;
-        } else {
-            regUsuarioError.style.display = "none";
-            regValidacao.usuario = true;
-        }
-        regAtualizarBotao();
+    // --- Alternar Abas ---
+    function showLogin() {
+        tabLogin.classList.add("active");
+        tabRegister.classList.remove("active");
+        loginFormContainer.style.display = "block";
+        registerFormContainer.style.display = "none";
+        loginError.textContent = "";
     }
 
-    function regValidarSenha() {
-        const regexSenha = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-        if (!regexSenha.test(regSenha.value)) {
-            regSenhaError.textContent = "Mínimo 8 caracteres, 1 letra e 1 número.";
-            regSenhaError.style.display = "block";
-            regValidacao.senha = false;
-        } else {
-            regSenhaError.style.display = "none";
-            regValidacao.senha = true;
-        }
-        regValidarConfirmarSenha();
-    }
-
-    function regValidarConfirmarSenha() {
-        if (regSenha.value !== regConfirmarSenha.value || regConfirmarSenha.value === "") {
-            regConfirmarSenhaError.textContent = "As senhas não coincidem.";
-            regConfirmarSenhaError.style.display = "block";
-            regValidacao.confirmar = false;
-        } else {
-            regConfirmarSenhaError.style.display = "none";
-            regValidacao.confirmar = true;
-        }
-        regAtualizarBotao();
-    }
-
-    function regAtualizarBotao() {
-        const todosValidos = Object.values(regValidacao).every(valido => valido);
-        regBtn.disabled = !todosValidos;
-    }
-
-    regNome.addEventListener("input", regValidarNome);
-    regEmail.addEventListener("input", regValidarEmail);
-    regUsuario.addEventListener("input", regValidarUsuario);
-    regSenha.addEventListener("input", regValidarSenha);
-    regConfirmarSenha.addEventListener("input", regValidarConfirmarSenha);
-    
-    regMostrarSenha.addEventListener("change", function() {
-        const isChecked = this.checked;
-        regSenha.type = isChecked ? "text" : "password";
-        regConfirmarSenha.type = isChecked ? "text" : "password";
-    });
-
-    registerForm.addEventListener("submit", function(event) {
-        event.preventDefault();
+    function showRegister() {
+        tabRegister.classList.add("active");
+        tabLogin.classList.remove("active");
+        registerFormContainer.style.display = "block";
+        loginFormContainer.style.display = "none";
         regGeralError.textContent = "";
-        
-        const dadosCadastro = {
-            nome: regNome.value,
-            email: regEmail.value,
-            usuario: regUsuario.value,
-            senha: regSenha.value
-        };
+    }
 
-        regBtn.disabled = true;
-        regBtn.textContent = "Registrando...";
+    tabLogin.addEventListener("click", showLogin);
+    tabRegister.addEventListener("click", showRegister);
+    switchToRegister.addEventListener("click", showRegister);
+    switchToLogin.addEventListener("click", showLogin);
 
-        setTimeout(() => {
-            let usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
-            const emailExistente = usersDB.find(user => user.email === dadosCadastro.email);
-            
-            if (emailExistente) {
-                regGeralError.textContent = "Este e-mail já está cadastrado.";
-                regBtn.disabled = false;
-                regBtn.textContent = "Registrar";
+    // --- Mostrar/Ocultar Senha ---
+    document.querySelectorAll('.toggle-btn').forEach(icon => {
+        icon.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            if (input.type === "password") {
+                input.type = "text";
+                this.classList.remove("fa-eye");
+                this.classList.add("fa-eye-slash");
             } else {
-                const isAdmin = dadosCadastro.email === 'admin@admin.com';
-                usersDB.push({ 
-                    id: String(Date.now()).slice(-6),
-                    email: dadosCadastro.email, 
-                    senha: dadosCadastro.senha,
-                    nome: dadosCadastro.nome,
-                    usuario: dadosCadastro.usuario,
-                    role: isAdmin ? 'admin' : 'user',
-                    status: isAdmin ? 'Admin' : 'Ativo',
-                    createdAt: new Date().toISOString().split('T')[0]
-                });
-                localStorage.setItem("usersDB", JSON.stringify(usersDB));
-                
-                alert("Cadastro realizado com sucesso! Faça o login.");
-                showForm("login", tabLogin);
-                registerForm.reset();
-                
-                regBtn.textContent = "Registrar";
-                for (let key in regValidacao) { regValidacao[key] = false; }
-                regAtualizarBotao();
+                input.type = "password";
+                this.classList.remove("fa-eye-slash");
+                this.classList.add("fa-eye");
             }
-        }, 1500);
-
-        /* const apiUrl = "https://sua-api-real-aqui.com/usuarios";
-        
-        fetch(apiUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                Nome_Usuario: dadosCadastro.nome,
-                Email_Usuario: dadosCadastro.email,
-                Apelido_Usuario: dadosCadastro.usuario,
-                Senha_Usuario: dadosCadastro.senha
-            })
-        })
-        .then(response => {
-            if (response.status === 201 || response.status === 200) {
-                alert("Cadastro realizado com sucesso! Faça o login.");
-                showForm("login", tabLogin);
-                registerForm.reset();
-            } else if (response.status === 409) {
-                regGeralError.textContent = "Este e-mail já está cadastrado.";
-            } else {
-                regGeralError.textContent = `Erro ao cadastrar (Código: ${response.status}).`;
-            }
-        })
-        .catch(error => {
-            console.error("Erro na chamada fetch:", error);
-            regGeralError.textContent = "Erro de conexão com o servidor. Tente novamente.";
-        })
-        .finally(() => {
-            regBtn.disabled = false;
-            regBtn.textContent = "Registrar";
         });
-        */
     });
 
-    
-    const loginEmail = document.getElementById("login-email");
-    const loginSenha = document.getElementById("login-senha");
-    const loginMostrarSenha = document.getElementById("login-mostrar-senha");
-    const loginBtn = document.getElementById("login-btn");
-    
-    const loginEmailError = document.getElementById("login-email-error");
-    const loginSenhaError = document.getElementById("login-senha-error");
-    const loginGeralError = document.getElementById("login-geral-error");
+    // --- Lembrar de Mim ---
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+        loginEmail.value = savedEmail;
+        if (rememberMe) rememberMe.checked = true;
+    }
 
-    const loginValidacao = {
-        email: false,
-        senha: false
-    };
+    // ==========================================
+    // 2. VALIDAÇÕES DE SEGURANÇA
+    // ==========================================
+    
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
 
-    function loginValidarEmail() {
-        const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!regexEmail.test(loginEmail.value)) {
-            loginEmailError.textContent = "Por favor, insira um e-mail válido.";
-            loginEmailError.style.display = "block";
-            loginValidacao.email = false;
-        } else {
-            loginEmailError.style.display = "none";
-            loginValidacao.email = true;
+    function validatePasswordStrength(password) {
+        const re = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+        return re.test(password);
+    }
+
+    function checkRegisterValidity() {
+        let valid = true;
+        regGeralError.textContent = "";
+        regSenhaError.style.display = "none";
+        regConfirmarError.style.display = "none";
+
+        if (!regNome.value || !regEmail.value || !regUsuario.value || !regSenha.value || !regConfirmar.value) {
+            valid = false;
+        } else if (!validateEmail(regEmail.value)) {
+            valid = false;
+        } else if (!validatePasswordStrength(regSenha.value)) {
+            regSenhaError.textContent = "A senha deve ter 8+ caracteres, letras e números.";
+            regSenhaError.style.display = "block";
+            valid = false;
+        } else if (regSenha.value !== regConfirmar.value) {
+            regConfirmarError.textContent = "As senhas não coincidem.";
+            regConfirmarError.style.display = "block";
+            valid = false;
         }
-        loginAtualizarBotao();
-    }
-    
-    function loginValidarSenha() {
-        if (loginSenha.value.trim().length === 0) {
-            loginSenhaError.textContent = "Senha é obrigatória.";
-            loginSenhaError.style.display = "block";
-            loginValidacao.senha = false;
-        } else {
-            loginSenhaError.style.display = "none";
-            loginValidacao.senha = true;
-        }
-        loginAtualizarBotao();
+
+        regBtn.disabled = !valid;
     }
 
-    function loginAtualizarBotao() {
-        const todosValidos = Object.values(loginValidacao).every(valido => valido);
-        loginBtn.disabled = !todosValidos;
-    }
-
-    loginEmail.addEventListener("input", loginValidarEmail);
-    loginSenha.addEventListener("input", loginValidarSenha);
-    
-    loginMostrarSenha.addEventListener("change", function() {
-        loginSenha.type = this.checked ? "text" : "password";
+    [regNome, regEmail, regUsuario, regSenha, regConfirmar].forEach(input => {
+        input.addEventListener("input", checkRegisterValidity);
     });
 
-    loginForm.addEventListener("submit", function(event) {
-        event.preventDefault();
-        loginGeralError.textContent = "";
-
-        const email = loginEmail.value;
-        const senha = loginSenha.value;
-
-        loginBtn.disabled = true;
-        loginBtn.textContent = "Entrando...";
+    // ==========================================
+    // 3. REGISTRO
+    // ==========================================
+    registerForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        regBtn.disabled = true;
+        regGeralError.textContent = "Processando...";
 
         setTimeout(() => {
             let usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
-            
-            if (usersDB.length === 0) {
-                const isAdmin = email === 'admin@admin.com';
-                const adminUser = { 
-                    id: String(Date.now()).slice(-6),
-                    email: 'admin@admin.com', 
-                    senha: 'admin123', 
-                    nome: 'Admin Birthday', 
-                    usuario: 'admin', 
-                    role: 'admin',
-                    status: 'Admin',
-                    createdAt: new Date().toISOString().split('T')[0]
-                };
-                usersDB.push(adminUser);
-                localStorage.setItem("usersDB", JSON.stringify(usersDB));
+
+            if (usersDB.some(u => u.Email === regEmail.value)) {
+                regGeralError.textContent = "Este e-mail já está em uso.";
+                regGeralError.style.color = "#D32F2F";
+                regBtn.disabled = false;
+                return;
+            }
+            if (usersDB.some(u => u.Usuario_Handle === regUsuario.value)) {
+                regGeralError.textContent = "Este usuário já existe.";
+                regGeralError.style.color = "#D32F2F";
+                regBtn.disabled = false;
+                return;
             }
 
-            const usuarioEncontrado = usersDB.find(user => user.email === email && user.senha === senha);
+            const newUser = {
+                ID_Usuario: Date.now(),
+                Nome: regNome.value,
+                Email: regEmail.value,
+                Usuario_Handle: regUsuario.value,
+                Senha: regSenha.value,
+                Tipo_Usuario: "Comum",
+                Data_Criacao: new Date().toISOString(),
+                Dados_Bancarios: {}
+            };
 
-            if (usuarioEncontrado) {
-                loginGeralError.textContent = "Login efetuado com sucesso! Redirecionando...";
-                loginGeralError.style.color = "green";
-                
-                const nomeDoUsuario = usuarioEncontrado.nome || usuarioEncontrado.email; 
-                const nomeDeUsuario = usuarioEncontrado.usuario || usuarioEncontrado.email.split('@')[0];
+            usersDB.push(newUser);
+            localStorage.setItem("usersDB", JSON.stringify(usersDB));
 
-                sessionStorage.setItem('currentUserEmail', usuarioEncontrado.email);
-                sessionStorage.setItem('currentUserName', nomeDoUsuario);
-                sessionStorage.setItem('currentUserHandle', nomeDeUsuario);
-                sessionStorage.setItem('currentUserRole', usuarioEncontrado.role || 'user');
-                
-                setTimeout(() => {
-                    window.location.href = "index.html";
-                }, 1000);
-                
-            } else {
-                loginGeralError.textContent = "E-mail ou senha inválidos.";
-                loginBtn.disabled = false;
-                loginBtn.textContent = "Entrar";
-            }
-        }, 1500);
-
-        /*
-        const apiUrl = "https://sua-api-real-aqui.com/login";
-        
-        fetch(apiUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                Email_Usuario: email,
-                Senha_Usuario: senha
-            })
-        })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else if (response.status === 401) {
-                throw new Error("Credenciais inválidas");
-            } else {
-                throw new Error("Erro no servidor");
-            }
-        })
-        .then(data => {
-            const nomeDoUsuario = data.nome || data.email; 
-            const nomeDeUsuario = data.usuario || data.email.split('@')[0];
-
-            sessionStorage.setItem('currentUserEmail', data.email);
-            sessionStorage.setItem('currentUserName', nomeDoUsuario);
-            sessionStorage.setItem('currentUserHandle', nomeDeUsuario);
-            sessionStorage.setItem('currentUserRole', data.role || 'user');
-
-            loginGeralError.textContent = "Login efetuado com sucesso! Redirecionando...";
-            loginGeralError.style.color = "green";
+            regGeralError.textContent = "Conta criada! Faça login.";
+            regGeralError.style.color = "#28a745";
             
             setTimeout(() => {
-                window.location.href = "index.html";
-            }, 1000);
-        })
-        .catch(error => {
-            console.error("Erro no login:", error.message);
-            loginGeralError.textContent = "E-mail ou senha inválidos.";
-        })
-        .finally(() => {
-            loginBtn.disabled = false;
-            loginBtn.textContent = "Entrar";
-        });
-        */
+                registerForm.reset();
+                showLogin();
+                regBtn.disabled = true;
+                regGeralError.textContent = "";
+            }, 1500);
+
+        }, 800);
     });
 
+    // ==========================================
+    // 4. LOGIN (CORRIGIDO: AUTO-SEED ADMIN)
+    // ==========================================
+    
+    function checkLoginValidity() {
+        loginBtn.disabled = !(loginEmail.value && loginSenha.value);
+    }
+    loginEmail.addEventListener("input", checkLoginValidity);
+    loginSenha.addEventListener("input", checkLoginValidity);
+
+    loginForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        loginBtn.disabled = true;
+        loginError.textContent = "Verificando...";
+
+        const emailVal = loginEmail.value.trim(); // Remove espaços extras
+        const passVal = loginSenha.value;
+
+        setTimeout(() => {
+            // 1. Carrega Banco
+            let usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
+
+            // --- CORREÇÃO CRÍTICA: SEED ADMIN ---
+            // Se o usuário está tentando logar como Admin e o Admin não existe no banco,
+            // nós criamos o Admin AGORA e salvamos no banco.
+            if (emailVal === "admin@admin.com" && passVal === "admin") {
+                const adminExists = usersDB.find(u => u.Email === "admin@admin.com");
+                
+                if (!adminExists) {
+                    console.log("Admin não encontrado. Criando automaticamente...");
+                    const newAdmin = {
+                        ID_Usuario: 1,
+                        Nome: "Administrador",
+                        Email: "admin@admin.com",
+                        Usuario_Handle: "admin",
+                        Senha: "admin",
+                        Tipo_Usuario: "Admin",
+                        Data_Criacao: new Date().toISOString(),
+                        Dados_Bancarios: {}
+                    };
+                    usersDB.push(newAdmin);
+                    localStorage.setItem("usersDB", JSON.stringify(usersDB)); // Salva no Storage
+                }
+            }
+            // ------------------------------------
+
+            // 2. Busca no Banco (agora o admin com certeza existe se foi digitado corretamente)
+            const user = usersDB.find(u => u.Email === emailVal && u.Senha === passVal);
+
+            if (user) {
+                finalizeLogin(user);
+            } else {
+                loginError.textContent = "E-mail ou senha incorretos.";
+                loginError.style.color = "#D32F2F";
+                loginBtn.disabled = false;
+            }
+        }, 800);
+    });
+
+    function finalizeLogin(user) {
+        if (rememberMe.checked) {
+            localStorage.setItem("rememberedEmail", user.Email);
+        } else {
+            localStorage.removeItem("rememberedEmail");
+        }
+
+        sessionStorage.setItem("currentUserEmail", user.Email);
+        sessionStorage.setItem("currentUserName", user.Nome);
+        sessionStorage.setItem("currentUserHandle", user.Usuario_Handle);
+        sessionStorage.setItem("currentUserRole", user.Tipo_Usuario);
+
+        loginError.textContent = "Sucesso! Redirecionando...";
+        loginError.style.color = "#28a745";
+
+        setTimeout(() => {
+            if (user.Tipo_Usuario === 'Admin') {
+                window.location.href = "gerenciamento-usuarios.html";
+            } else {
+                window.location.href = "index.html";
+            }
+        }, 1000);
+    }
 });

@@ -5,14 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seja Bem-vindo! - Birthday Fund</title>
     <link rel="stylesheet" href="css/autenticacao.css">
+    <link rel="stylesheet" href="css/home.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 <body>
-    <header class="main-header">
-        <div class="logo-container">
-            <img src="assets/logo.png" alt="Birthday Fund Logo"> <span>Birthday Fund</span>
-        </div>
-    </header>
+   <header class="navbar">
+    <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    
+    <div class="logo">
+      <a href="index.html">
+        <i class="fa-solid fa-cake-candles"></i>
+        <span>Birthday Fund</span>
+      </a>
+    </div>
+    
+    <nav id="navLinks">
+      <div class="nav-center">
+        <a href="sobre.html">Quem somos</a>
+        <a href="perfil.html">Meu Perfil</a>
+      </div>
+      
+  </header>
 
     <main class="auth-container">
         
@@ -29,86 +42,72 @@
 
             <nav class="auth-tabs">
                 <button id="tabLogin" class="tab-btn active">Entrar</button>
-                <button id="tabRegister" class="tab-btn">Criar</button>
+                <button id="tabRegister" class="tab-btn">Criar conta</button>
             </nav>
 
-            <div class="form-content">
-                
-                <div class="form-slider">
-
-                    <form id="loginForm" class="form-wrapper" novalidate>
-                        
+        <div class="form-wrapper">
+            <div class="form-slider">
+                <!-- FORMULÁRIO DE LOGIN -->
+                <div class="auth-form" id="loginFormContainer">
+                    <form id="loginForm">
                         <div class="input-group">
-                            <label for="login-email">Email</label>
-                            <input type="email" id="login-email" placeholder="Exemplo@email.com" required>
-                            <span class="error-message" id="login-email-error"></span>
+                            <label for="login-email">E-mail</label>
+                            <input type="email" id="login-email" placeholder="seu@email.com" required>
                         </div>
 
                         <div class="input-group">
                             <label for="login-senha">Senha</label>
                             <input type="password" id="login-senha" placeholder="*****" required>
-                            <span class="error-message" id="login-senha-error"></span>
+                            <i class="fa-solid fa-eye toggle-btn"></i>
                         </div>
 
-                        <div class="form-options">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="login-mostrar-senha">
-                                <label for="login-mostrar-senha">Mostrar senha</label>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="login-lembrar">
-                                <label for="login-lembrar">Lembrar da conta</label>
-                            </div>
-                            <a href="esqueci-senha.html" class="forgot-password">Esqueceu a senha?</a>
+                        <div class="remember-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="rememberMe"> Lembrar de mim
+                            </label>
+                            <a href="esqueci-senha.html" class="link">Esqueceu a senha?</a>
                         </div>
-                        
+
                         <span class="error-message general-error" id="login-geral-error"></span>
 
                         <button type="submit" id="login-btn" class="btn btn-primary" disabled>Entrar</button>
-
+                        
                         <p class="form-switch-link">
-                            Não possui uma conta? <span id="switchToRegister" class="link">Crie aqui</span>
+                            Não tem uma conta? <span id="switchToRegister" class="link">Cadastre-se</span>
                         </p>
                     </form>
+                </div>
 
-                    <form id="registerForm" class="form-wrapper" novalidate>
-                        <h3 class="form-title">Criar uma conta</h3>
-                        
+                <!-- FORMULÁRIO DE REGISTRO -->
+                <div class="auth-form" id="registerFormContainer">
+                    <form id="registerForm">
                         <div class="input-group">
                             <label for="reg-nome">Nome Completo</label>
-                            <input type="text" id="reg-nome" placeholder="Ex: Maria José Cardoso" required>
-                            <span class="error-message" id="reg-nome-error"></span>
+                            <input type="text" id="reg-nome" placeholder="Seu nome completo" required>
                         </div>
 
                         <div class="input-group">
-                            <label for="reg-email">Email</label>
-                            <input type="email" id="reg-email" placeholder="Exemplo@email.com" required>
-                            <span class="error-message" id="reg-email-error"></span>
+                            <label for="reg-email">E-mail</label>
+                            <input type="email" id="reg-email" placeholder="seu@email.com" required>
                         </div>
-                        
+
                         <div class="input-group">
-                            <label for="reg-usuario">Nome de usuário</label>
-                            <input type="text" id="reg-usuario" placeholder="Ex: mariajose" required>
-                            <span class="error-message" id="reg-usuario-error"></span>
+                            <label for="reg-usuario">Nome de Usuário (@)</label>
+                            <input type="text" id="reg-usuario" placeholder="Ex: usuario123" required>
                         </div>
 
                         <div class="input-group">
                             <label for="reg-senha">Senha</label>
-                            <input type="password" id="reg-senha" placeholder="*****" required>
+                            <input type="password" id="reg-senha" placeholder="Mín. 8 caracteres, letra e número" required>
+                            <i class="fa-solid fa-eye toggle-btn"></i>
                             <span class="error-message" id="reg-senha-error"></span>
                         </div>
 
                         <div class="input-group">
                             <label for="reg-confirmar-senha">Confirmar senha</label>
-                            <input type="password" id="reg-confirmar-senha" placeholder="*****" required>
+                            <input type="password" id="reg-confirmar-senha" placeholder="Repita a senha" required>
+                            <i class="fa-solid fa-eye toggle-btn"></i>
                             <span class="error-message" id="reg-confirmar-senha-error"></span>
-                        </div>
-
-                        <div class="form-options">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="reg-mostrar-senha">
-                                <label for="reg-mostrar-senha">Mostrar senha</label>
-                            </div>
                         </div>
                         
                         <span class="error-message general-error" id="reg-geral-error"></span>
@@ -119,11 +118,20 @@
                             Já possui uma conta? <span id="switchToLogin" class="link">Entre aqui</span>
                         </p>
                     </form>
-
                 </div>
+
             </div>
         </div>
+    </div>
     </main>
+    <footer>
+    <p>Nossos Contatos</p>
+    <div class="social-icons">
+      <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+      <a href="#"><i class="fa-brands fa-instagram"></i></a>
+      <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+    </div>
+  </footer>
     
     <script src="js/autenticacao.js"></script>
 </body>
