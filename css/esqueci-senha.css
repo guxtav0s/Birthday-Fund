@@ -1,134 +1,120 @@
-/* --- Reset e Configurações Globais --- */
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* RESET herdado do home.css, focamos no específico */
 
-@keyframes fadeInPage {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-body {
-    font-family: Arial, sans-serif;
-    animation: fadeInPage 0.6s ease-out forwards;
-    background-color: #0f0c29;
-    background-image: 
-        radial-gradient(circle at 15% 20%, rgba(124, 58, 237, 0.3) 0%, transparent 40%),
-        radial-gradient(circle at 85% 70%, rgba(217, 70, 239, 0.2) 0%, transparent 40%),
-        linear-gradient(to right top, #0f0c29, #1a1444, #1f1a5f);
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-attachment: fixed;
-    color: white;
-    min-height: 100vh;
+.auth-container {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    padding: 20px;
-    color-scheme: dark;
+    min-height: 80vh;
+    padding: 40px 20px;
 }
 
-/* --- Header --- */
-header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 40px; 
-    margin-bottom: 20px;
-}
-.logo-container { display: flex; align-items: center; gap: 10px; }
-.logo-container img { width: 80px; height: 80px; }
-.logo-container span { font-size: 1.2rem; font-weight: bold; }
-.user-icon-container { font-size: 2.5rem; color: white; }
-
-/* --- Container --- */
-.form-container {
+/* Painel de Vidro (Identidade Visual) */
+.auth-box {
+    background: rgba(30, 30, 60, 0.7);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
     width: 100%;
     max-width: 450px;
-    background-color: transparent;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    border-radius: 15px;
-    padding: 30px 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    backdrop-filter: blur(5px);
-    min-height: 400px; 
-    justify-content: center;
+    padding: 40px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    color: white;
 }
 
-#formContainer, #successMessage {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* --- Título --- */
-h1 {
-    background-color: white;
-    color: #333;
-    font-size: 1.3rem; 
-    font-weight: bold;
-    padding: 10px 20px;
-    border-radius: 8px;
+.header-text {
+    text-align: center;
     margin-bottom: 30px;
-    text-align: center;
 }
 
-/* --- Formulário e Inputs --- */
-form { width: 100%; display: flex; flex-direction: column; gap: 15px; }
-.input-group { width: 100%; display: flex; flex-direction: column; }
-.input-group label { font-size: 0.9rem; margin-bottom: 5px; }
-input[type="email"] {
-    width: 100%; padding: 12px 15px; border: none;
-    border-radius: 8px; background-color: white;
-    color: #333; font-size: 1rem;
-}
-.input-with-icon { position: relative; width: 100%; }
-.input-with-icon .icon { position: absolute; top: 50%; transform: translateY(-50%); color: #888; }
-.input-with-icon .icon-left { left: 12px; }
-.has-icon-left { padding-left: 40px !important; }
-
-/* --- Mensagens --- */
-.mensagem-erro { color: #ff6b6b; font-size: 0.85rem; min-height: 1.2em; margin-top: 3px; }
-#emailError { display: none; }
-#mensagemGeral { text-align: center; font-weight: bold; min-height: 1.5em; margin: 5px 0; color: #ff6b6b; }
-
-/* --- Botões --- */
-.button-stack { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 15px; margin-top: 20px; }
-.btn { padding: 12px 20px; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; width: 100%; }
-.btn-primary { background-color: #8A2BE2; color: white; }
-.btn-primary:disabled { background-color: #999; cursor: not-allowed; opacity: 0.7; }
-
-/* --- Botão Voltar --- */
-.btn-voltar {
-    color: #ddd; font-size: 0.9rem; text-decoration: none;
-    margin-top: 10px; text-align: center;
-}
-.btn-voltar:hover { color: white; text-decoration: underline; }
-
-/* --- Texto de Sucesso --- */
-.success-text {
+.header-text h1 {
     font-size: 1.8rem;
-    font-weight: bold;
-    text-align: center;
-    line-height: 1.4;
-    padding: 20px;
+    margin-bottom: 10px;
+    color: white;
 }
 
-/* --- Responsividade  --- */
-@media (max-width: 480px) {
-    body { padding: 0; }
-    header { flex-direction: row; justify-content: space-between; align-items: center; padding: 15px 20px; margin-bottom: 10px; }
-    .logo-container { align-self: auto; margin-bottom: 0; }
-    .logo-container img { width: 60px; height: 60px; }
-    .logo-container span { display: none; }
-    .user-icon-container { display: block; font-size: 2.0rem; }
-    .form-container { width: 100%; max-width: 100%; padding: 20px; border: none; border-radius: 0; min-height: calc(100vh - 90px); }
-    h1 { font-size: 1.2rem; }
-    .success-text { font-size: 1.5rem; }
+.header-text p {
+    color: #ccc;
+    font-size: 0.9rem;
 }
+
+/* Inputs */
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ccc;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.input-wrapper { position: relative; }
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+    border-color: #5b2be0;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Botão */
+.btn {
+    width: 100%;
+    padding: 14px;
+    background: #5b2be0;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+    margin-top: 10px;
+}
+
+.btn:hover:not(:disabled) {
+    background: #4a23b8;
+    transform: scale(1.02);
+}
+
+.btn:disabled {
+    background: #444;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Footer do Form */
+.form-footer {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.form-footer a {
+    color: #5b2be0;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+.form-footer a:hover { color: #FFD700; }
+
+/* Erros */
+.error-message {
+    color: #ff4d4d;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    display: block;
+    min-height: 20px;
+}
+.general-error { text-align: center; margin-bottom: 15px; font-weight: bold; }

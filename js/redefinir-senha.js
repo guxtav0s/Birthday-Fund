@@ -1,5 +1,13 @@
 document.addEventListener("DOMContentLoaded", function() {
 
+    // Verifica se veio do fluxo correto
+    const emailToReset = sessionStorage.getItem("resetEmail");
+    if (!emailToReset) {
+        alert("Fluxo inválido. Inicie pelo 'Esqueci minha senha'.");
+        window.location.href = "autenticacao.html";
+        return;
+    }
+
     const form = document.getElementById("formRedefinir");
     const senhaInput = document.getElementById("senha");
     const confirmarSenhaInput = document.getElementById("confirmarSenha");
@@ -9,162 +17,80 @@ document.addEventListener("DOMContentLoaded", function() {
     const confirmarError = document.getElementById("confirmarError");
     const mensagemGeral = document.getElementById("mensagemGeral");
     
-    const toggleSenhaIcons = document.querySelectorAll(".toggle-senha");
-
-    const validacao = {
-        senha: false,
-        confirmarSenha: false
-    };
-
-    function validarSenha() {
-        const senha = senhaInput.value;
-        const regexSenha = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-        if (!regexSenha.test(senha)) {
-            senhaError.textContent = "A senha deve ter no mínimo 8 caracteres, uma letra e um número.";
-            senhaError.style.display = "block";
-            validacao.senha = false;
-        } else {
-            senhaError.style.display = "none";
-            validacao.senha = true;
-        }
-        validarConfirmarSenha(); 
-    }
-
-    function validarConfirmarSenha() {
-        if (confirmarSenhaInput.value !== senhaInput.value || confirmarSenhaInput.value === "") {
-            confirmarError.textContent = "As senhas não coincidem.";
-            confirmarError.style.display = "block";
-            validacao.confirmarSenha = false;
-        } else {
-            confirmarError.style.display = "none";
-            validacao.confirmarSenha = true;
-        }
-        atualizarEstadoBotao();
-    }
-
-    function atualizarEstadoBotao() {
-        const todosValidos = Object.values(validacao).every(valido => valido);
-        btnRedefinir.disabled = !todosValidos;
-    }
-
-    toggleSenhaIcons.forEach(icon => {
-        icon.addEventListener("click", function() {
-            const targetId = this.getAttribute("data-target");
-            const targetInput = document.getElementById(targetId);
-            if (targetInput.type === "password") {
-                targetInput.type = "text";
-                this.classList.remove("fa-eye-slash"); this.classList.add("fa-eye");
+    // Toggle Senha
+    document.querySelectorAll('.toggle-btn').forEach(icon => {
+        icon.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            if (input.type === "password") {
+                input.type = "text";
+                this.classList.remove("fa-eye");
+                this.classList.add("fa-eye-slash");
             } else {
-                targetInput.type = "password";
-                this.classList.remove("fa-eye"); this.classList.add("fa-eye-slash");
+                input.type = "password";
+                this.classList.remove("fa-eye-slash");
+                this.classList.add("fa-eye");
             }
         });
     });
 
-    senhaInput.addEventListener("input", validarSenha);
-    confirmarSenhaInput.addEventListener("input", validarConfirmarSenha);
-
-    form.addEventListener("submit", function(event) {
-        event.preventDefault();
-
-        btnRedefinir.disabled = true;
-        btnRedefinir.textContent = "Salvando...";
-        mensagemGeral.textContent = "";
-
-        const emailParaRedefinir = localStorage.getItem("emailParaRedefinir");
-        const novaSenha = senhaInput.value;
-
-        if (!emailParaRedefinir) {
-            mensagemGeral.textContent = "Sessão inválida. Volte e solicite o link novamente.";
-            btnRedefinir.disabled = false;
-            btnRedefinir.textContent = "Confirmar Alteração";
-            return;
+    // Validações
+    function validarFormulario() {
+        let valid = true;
+        
+        // Força da Senha
+        const regexSenha = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        if (!regexSenha.test(senhaInput.value)) {
+            senhaError.textContent = "Mínimo 8 caracteres, letra e número.";
+            valid = false;
+        } else {
+            senhaError.textContent = "";
         }
 
-        console.log("MOCK: Redefinindo senha para:", emailParaRedefinir);
+        // Confirmação
+        if (confirmarSenhaInput.value !== senhaInput.value) {
+            confirmarError.textContent = "As senhas não coincidem.";
+            valid = false;
+        } else {
+            confirmarError.textContent = "";
+        }
+
+        // Habilitar botão
+        if (senhaInput.value === "" || confirmarSenhaInput.value === "") valid = false;
+        
+        btnRedefinir.disabled = !valid;
+    }
+
+    senhaInput.addEventListener("input", validarFormulario);
+    confirmarSenhaInput.addEventListener("input", validarFormulario);
+
+    // Submit
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+        btnRedefinir.disabled = true;
+        btnRedefinir.textContent = "Atualizando...";
 
         setTimeout(() => {
             let usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
-            
-            const userIndex = usersDB.findIndex(user => user.email === emailParaRedefinir);
+            const userIndex = usersDB.findIndex(u => u.Email === emailToReset);
 
-            if (userIndex > -1) {
-                
-                const usuario = usersDB[userIndex];
-                if (usuario.senha === novaSenha) {
-                    console.log("MOCK: Erro - Nova senha é igual à antiga.");
-                    mensagemGeral.textContent = "A nova senha não pode ser igual à senha anterior.";
-                    mensagemGeral.style.color = "#ff6b6b";
-                    btnRedefinir.disabled = false;
-                    btnRedefinir.textContent = "Confirmar Alteração";
-                    return;
-                }
-
-                usersDB[userIndex].senha = novaSenha;
-                
+            if (userIndex !== -1) {
+                // Atualiza Senha
+                usersDB[userIndex].Senha = senhaInput.value;
                 localStorage.setItem("usersDB", JSON.stringify(usersDB));
-                localStorage.removeItem("emailParaRedefinir");
 
-                mensagemGeral.textContent = "Senha alterada com sucesso!";
-                mensagemGeral.style.color = "#4cff4c";
+                // Limpa sessão
+                sessionStorage.removeItem("resetEmail");
+
+                mensagemGeral.style.color = "#4CAF50";
+                mensagemGeral.textContent = "Senha redefinida com sucesso!";
 
                 setTimeout(() => {
                     window.location.href = "autenticacao.html";
                 }, 2000);
-
             } else {
-                mensagemGeral.textContent = "Erro ao encontrar usuário. Tente novamente.";
+                mensagemGeral.textContent = "Erro ao encontrar usuário.";
                 btnRedefinir.disabled = false;
-                btnRedefinir.textContent = "Confirmar Alteração";
             }
-        }, 1500);
-
-        /* // --- CÓDIGO DA API REAL (AGORA SIM, 100% PRONTO) ---
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        const novaSenha = senhaInput.value;
-
-        if (!token) {
-            mensagemGeral.textContent = "Link de redefinição inválido ou ausente.";
-            btnRedefinir.disabled = false;
-            btnRedefinir.textContent = "Confirmar Alteração";
-            return; 
-        }
-        
-        const apiUrl = "https://sua-api-real-aqui.com/redefinir-senha";
-        
-        fetch(apiUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                token: token, 
-                novaSenha: novaSenha 
-            })
-        })
-        .then(response => {
-            if (response.status === 422) {
-                 mensagemGeral.textContent = "A nova senha não pode ser igual à senha anterior.";
-                 btnRedefinir.disabled = false;
-                 btnRedefinir.textContent = "Confirmar Alteração";
-            } else if (response.ok) {
-                mensagemGeral.textContent = "Senha alterada com sucesso!";
-                mensagemGeral.style.color = "#4cff4c";
-                setTimeout(() => {
-                    window.location.href = "autenticacao.html";
-                }, 2000);
-            } else {
-                mensagemGeral.textContent = "Link de redefinição inválido ou expirado.";
-                btnRedefinir.disabled = false;
-                btnRedefinir.textContent = "Confirmar Alteração";
-            }
-        })
-        .catch(error => {
-            console.error("Erro na chamada fetch:", error);
-            mensagemGagemGeral.textContent = "Erro de conexão com o servidor.";
-            btnRedefinir.disabled = false;
-            btnRedefinir.textContent = "Confirmar Alteração";
-        });
-        */
+        }, 1000);
     });
 });

@@ -4,53 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redefinir Senha - Birthday Fund</title>
+    
+    <link rel="stylesheet" href="css/home.css">
     <link rel="stylesheet" href="css/redefinir-senha.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 </head>
 <body>
 
-    <header>
-        <div class="logo-container">
-            <img src="assets/logo.png" alt="Birthday Fund Logo">
-            <span>Birthday Fund</span>
+    <header class="navbar">
+        <div class="menu-icon" onclick="toggleMenu()">☰</div>
+        <div class="logo">
+          <a href="index.html"><span><i class="fa-solid fa-cake-candles"></i> Birthday Fund</span></a>
         </div>
-        <div class="user-icon-container">
-            <i class="fa-solid fa-circle-user"></i>
-        </div>
+        <nav id="navLinks">
+          <div class="nav-center">
+            <a href="index.html">Início</a>
+            <a href="sobre.html">Quem somos</a>
+          </div>
+          <div class="nav-right">
+            <a href="autenticacao.html" style="color: #ccc; text-decoration: none;">Cancelar</a>
+          </div>
+        </nav>
     </header>
 
-    <main class="form-container">
-        <h1>REDEFINIÇÃO DE SENHA</h1>
-
-        <form id="formRedefinir" novalidate>
+    <main class="auth-container">
+        <div class="auth-box">
             
-            <div class="input-group">
-                <label for="senha">Crie uma nova Senha:</label>
-                <div class="input-with-icon">
-                    <input type="password" id="senha" name="senha" class="has-icon-right" required>
-                    <i class="fa-solid fa-eye-slash icon icon-right toggle-senha" data-target="senha"></i>
+            <div class="header-text">
+                <h1>Nova Senha</h1>
+                <p>Crie uma senha forte para sua conta.</p>
+            </div>
+
+            <form id="formRedefinir" novalidate>
+                
+                <div class="input-group">
+                    <label for="senha">Nova Senha</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="senha" placeholder="Mínimo 8 caracteres" required>
+                        <i class="fa-solid fa-eye toggle-btn"></i>
+                    </div>
+                    <span id="senhaError" class="error-message"></span>
                 </div>
-                <span id="senhaError" class="mensagem-erro">A senha deve ter no mínimo 8 caracteres, uma letra e um número.</span>
-            </div>
 
-            <div class="input-group">
-                <label for="confirmarSenha">Confirme a nova Senha:</label>
-                <div class="input-with-icon">
-                    <input type="password" id="confirmarSenha" name="confirmarSenha" class="has-icon-right" required>
-                    <i class="fa-solid fa-eye-slash icon icon-right toggle-senha" data-target="confirmarSenha"></i>
+                <div class="input-group">
+                    <label for="confirmarSenha">Confirmar Senha</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="confirmarSenha" placeholder="Repita a senha" required>
+                        <i class="fa-solid fa-eye toggle-btn"></i>
+                    </div>
+                    <span id="confirmarError" class="error-message"></span>
                 </div>
-                <span id="confirmarError" class="mensagem-erro">As senhas não coincidem.</span>
-            </div>
 
-            <div id="mensagemGeral"></div>
+                <div id="mensagemGeral" class="error-message general-error"></div>
 
-            <div class="button-stack">
-                <button type="submit" id="btnRedefinir" class="btn btn-primary" disabled>Confirmar Alteração</button>
-            </div>
-            
-        </form>
+                <button type="submit" id="btnRedefinir" class="btn btn-primary" disabled>Redefinir Senha</button>
+                
+            </form>
+
+        </div>
     </main>
 
+    <footer>
+        <p>Nossos Contatos</p>
+        <div class="social-icons">
+          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
     <script src="js/redefinir-senha.js"></script>
 </body>
 </html>

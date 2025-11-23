@@ -8,23 +8,18 @@ document.addEventListener("DOMContentLoaded", function() {
     const emailError = document.getElementById("emailError");
     const mensagemGeral = document.getElementById("mensagemGeral");
 
-    const validacao = { email: false };
-
+    // Validação em tempo real
     function validarEmail() {
         const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!regexEmail.test(emailInput.value)) {
+        const isValid = regexEmail.test(emailInput.value);
+        
+        if (!isValid && emailInput.value !== "") {
             emailError.textContent = "Por favor, insira um e-mail válido.";
-            emailError.style.display = "block";
-            validacao.email = false;
+            btnSeguir.disabled = true;
         } else {
-            emailError.style.display = "none";
-            validacao.email = true;
+            emailError.textContent = "";
+            btnSeguir.disabled = !isValid; // Habilita se válido
         }
-        atualizarEstadoBotao();
-    }
-
-    function atualizarEstadoBotao() {
-        btnSeguir.disabled = !validacao.email;
     }
 
     emailInput.addEventListener("input", validarEmail);
@@ -38,55 +33,30 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const email = emailInput.value;
 
-        console.log("MOCK: Verificando se o e-mail existe...", email);
-        
         setTimeout(() => {
+            // 1. Busca no Banco de Dados
             const usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
-            const usuarioEncontrado = usersDB.find(user => user.email === email);
+            const userExists = usersDB.some(u => u.Email === email);
 
-            if (usuarioEncontrado) {
-                console.log("MOCK: E-mail encontrado. Simulando envio de link.");
-                
-                localStorage.setItem("emailParaRedefinir", email);
+            if (userExists) {
+                // 2. Salva e-mail na sessão para a próxima etapa
+                sessionStorage.setItem("resetEmail", email);
 
+                // 3. UI Sucesso
                 formContainer.style.display = "none";
                 successMessage.style.display = "block";
 
+                // 4. Redireciona (Simulação de clique no link do email)
                 setTimeout(() => {
                     window.location.href = "redefinir-senha.html";
-                }, 3000);
+                }, 2500);
 
             } else {
-                console.log("MOCK: E-mail não encontrado no localStorage.");
-                mensagemGeral.textContent = "E-mail não cadastrado no sistema.";
+                // Erro
+                mensagemGeral.textContent = "E-mail não encontrado em nossa base.";
                 btnSeguir.disabled = false;
-                btnSeguir.textContent = "Seguir";
+                btnSeguir.textContent = "Enviar Link";
             }
-        }, 1500);
-
-        /* // --- CÓDIGO DA API REAL (Quando o Back-end estiver pronto) ---
-
-        const apiUrl = "";
-        fetch(apiUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ Email_Usuario: email })
-        })
-        .then(response => {
-            if (response.ok) {
-                formContainer.style.display = "none";
-                successMessage.style.display = "block";
-            } else {
-                mensagemGeral.textContent = "E-mail não cadastrado.";
-                btnSeguir.disabled = false;
-                btnSeguir.textContent = "Seguir";
-            }
-        })
-        .catch(error => {
-            mensagemGeral.textContent = "Erro de conexão com o servidor.";
-            btnSeguir.disabled = false;
-            btnSeguir.textContent = "Seguir";
-        });
-        */
+        }, 1000);
     });
 });
