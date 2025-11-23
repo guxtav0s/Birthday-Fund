@@ -3,103 +3,159 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Editar Perfil - Birthday Fund</title>
+  <title>Meu Perfil - Birthday Fund</title>
+  
+  <link rel="stylesheet" href="css/home.css">
   <link rel="stylesheet" href="css/perfil.css">
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
+  <style>.hidden { display: none !important; }</style>
 </head>
 <body>
 
   <header class="navbar">
     <div class="menu-icon" onclick="toggleMenu()">☰</div>
-    
     <div class="logo">
       <a href="index.html"><span><i class="fa-solid fa-cake-candles"></i> Birthday Fund</span></a>
     </div>
-    
     <nav id="navLinks">
       <div class="nav-center">
         <a href="index.html">Início</a>
         <a href="sobre.html">Quem somos</a>
-        <a href="gerenciamento-eventos.html">Eventos e Convites</a>
+        <a href="perfil.html" class="active-link">Meu Perfil</a>
       </div>
-      
       <div class="nav-right">
-        <a href="autenticacao.html" class="auth-link">Entre agora</a>
-        <a href="perfil.html" class="user-icon"><i class="fa-solid fa-user"></i></a>
-      </div>
+        </div>
     </nav>
   </header>
 
-  <main class="perfil-container">
+  <div class="profile-wrapper">
     
-    <aside class="perfil-sidebar-left">
-      <h1>Meu Perfil</h1>
-      <div class="perfil-avatar">
-        <i class="fa-solid fa-user"></i>
-      </div>
-      <h2 id="profileUserName">Nome Sobrenome</h2>
-      <p id="profileUserHandle">@username</p>
-      
-      </aside>
-
-    <section class="perfil-content-right">
-      <form id="perfilForm">
-
-        <div class="perfil-section">
-          <h2>Informações Pessoais</h2>
-          
-          <div class="form-group">
-            <label for="nome">Nome Completo</label>
-            <input type="text" id="nome" name="nome" placeholder="Digite seu nome completo">
-          </div>
-          <div class="form-group">
-            <label for="usuario">Nome de usuário</label>
-            <input type="text" id="usuario" name="usuario" placeholder="Digite seu nome de usuário">
-          </div>
-          <div class="form-group">
-            <label for="email">E-mail</label>
-            <input type="email" id="email" name="email" placeholder="Digite seu e-mail" readonly>
-            <small>O e-mail não pode ser alterado.</small>
-          </div>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3>MINHA CONTA</h3>
         </div>
+        <ul class="nav-menu">
+            <li class="nav-item active" onclick="switchTab('dados', this)">
+                <i class="fa-solid fa-user-gear"></i> <span>Dados Pessoais</span>
+            </li>
+            <li class="nav-item" onclick="switchTab('banco', this)">
+                <i class="fa-solid fa-building-columns"></i> <span>Conta Bancária</span>
+            </li>
+            <li class="nav-item logout-item" id="btnSidebarLogout">
+                <i class="fa-solid fa-right-from-bracket"></i> <span>Sair</span>
+            </li>
+        </ul>
+    </aside>
 
-        <div class="perfil-section">
-          <h2>Alterar Senha</h2>
-          
-          <div class="form-group">
-            <label for="senhaAtual">Senha atual</label>
-            <input type="password" id="senhaAtual" placeholder="Digite sua senha atual">
-          </div>
-
-          <div class="form-group">
-            <label for="novaSenha">Nova senha</label>
-            <input type="password" id="novaSenha" placeholder="Digite a nova senha">
-          </div>
-
-          <div class="form-group">
-            <label for="confirmarSenha">Confirmar nova senha</label>
-            <input type="password" id="confirmarSenha" placeholder="Confirme a nova senha">
-          </div>
-
-          <div class="checkbox-group">
-            <input type="checkbox" id="mostrar-senha">
-            <label for="mostrar-senha">Mostrar senha</label>
-          </div>
-        </div>
+    <main class="main-content">
         
-        <div id="mensagemGeral" class="mensagem-geral"></div>
-
-        <div class="botoes">
-          <button type="submit" class="btn-salvar">Salvar Alterações</button>
+        <div class="profile-header-card glass-panel">
+            <div class="avatar-circle">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="profile-info">
+                <h2 id="profileUserName">Carregando...</h2>
+                <p id="profileUserHandle">@usuario</p>
+            </div>
         </div>
-        
-      </form>
-    </section>
 
-  </main>
+        <section id="view-dados" class="tab-view">
+            <div class="form-container glass-panel">
+                <div class="form-header">
+                    <h3>Informações Básicas</h3>
+                    <p>Gerencie seus dados de acesso e segurança.</p>
+                </div>
+
+                <form id="perfilForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nome Completo</label>
+                            <input type="text" id="nome" placeholder="Seu nome">
+                        </div>
+                        <div class="form-group">
+                            <label>Usuário (@)</label>
+                            <input type="text" id="usuario" placeholder="Seu handle">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>E-mail</label>
+                        <input type="email" id="email" readonly class="readonly-input">
+                        <small><i class="fa-solid fa-lock"></i> O e-mail não pode ser alterado.</small>
+                    </div>
+
+                    <hr class="divider">
+
+                    <h4><i class="fa-solid fa-key"></i> Alterar Senha</h4>
+                    <div class="form-group">
+                        <label>Senha Atual</label>
+                        <input type="password" id="senhaAtual">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nova Senha</label>
+                            <input type="password" id="novaSenha">
+                        </div>
+                        <div class="form-group">
+                            <label>Confirmar Nova Senha</label>
+                            <input type="password" id="confirmarSenha">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                      <span id="msgDados" class="feedback-msg"></span> <button type="submit" class="btn-save">Salvar Alterações</button>
+                  </div>
+                </form>
+            </div>
+        </section>
+
+        <section id="view-banco" class="tab-view hidden">
+            <div class="form-container glass-panel">
+                <div class="form-header">
+                    <h3>Dados de Recebimento</h3>
+                    <p>Cadastre sua chave PIX para receber as doações das campanhas.</p>
+                </div>
+
+                <form id="bancoForm">
+                    <div class="form-group">
+                        <label>Tipo de Chave PIX</label>
+                        <select id="tipoPix">
+                            <option value="cpf">CPF/CNPJ</option>
+                            <option value="email">E-mail</option>
+                            <option value="telefone">Telefone</option>
+                            <option value="aleatoria">Chave Aleatória</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Chave PIX</label>
+                        <input type="text" id="chavePix" placeholder="Insira sua chave aqui" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nome do Titular da Conta</label>
+                        <input type="text" id="titularPix" placeholder="Nome completo conforme no banco">
+                    </div>
+
+                    <div class="info-box">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <p>Estes dados serão utilizados para gerar o QR Code nas suas campanhas de arrecadação.</p>
+                    </div>
+
+                    <div class="form-actions">
+                      <span id="msgBanco" class="feedback-msg"></span> <button type="submit" class="btn-save">Salvar Dados Bancários</button>
+                  </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+  </div>
 
   <script src="js/script.js"></script>
   <script src="js/perfil.js"></script>
-
 </body>
 </html>
