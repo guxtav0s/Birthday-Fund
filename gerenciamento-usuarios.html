@@ -3,120 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerenciamento - Birthday Fund</title>
+    <title>Painel Admin - Birthday Fund</title>
+    
+    <link rel="stylesheet" href="css/home.css">
     <link rel="stylesheet" href="css/gerenciamento-usuarios.css">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
 
-  <header class="navbar">
+<header class="navbar">
     <div class="menu-icon" onclick="toggleMenu()">☰</div>
-    
     <div class="logo">
-      <a href="index.html"><span><i class="fa-solid fa-cake-candles"></i> Birthday Fund</span></a>
+        <a href="index.html"><span><i class="fa-solid fa-cake-candles"></i> Birthday Fund</span></a>
     </div>
-    
     <nav id="navLinks">
-      <div class="nav-center">
-        <a href="index.html">Início</a>
-        <a href="sobre.html">Quem somos</a>
-        <a href="perfil.html">Meu Perfil</a>
-        <a href="gerenciamento-eventos.html">Eventos e Convites</a>
-      </div>
-      
-      <div class="nav-right">
-        <a href="autenticacao.html" class="auth-link">Entre agora</a>
-        <a href="perfil.html" class="user-icon"><i class="fa-solid fa-user"></i></a>
-      </div>
+        <div class="nav-center">
+            <a href="index.html">Início</a>
+            <a href="sobre.html">Quem somos</a>
+            <a href="perfil.html">Meu Perfil</a>
+        </div>
+        <div class="nav-right">
+            </div>
     </nav>
-  </header>
+</header>
 
-  <main class="admin-main-container">
-
-    <div class="admin-header-container">
-      <h2>Gerenciamento de Usuários</h2>
-      <div class="header-actions">
-        <div class="search-bar">
-          <i class="fa-solid fa-search"></i>
-          <input type="text" id="searchInput" placeholder="Buscar usuário por nome ou e-mail...">
-        </div>
-        <button class="btn primary" id="openModal"><i class="fa-solid fa-plus"></i> Adicionar Novo</button>
-      </div>
-    </div>
+<div class="admin-wrapper">
     
-    <div class="admin-table-container">
-      <div class="table-wrapper">
-        <div class="table-responsive">
-        <table class="user-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nome</th>
-              <th>Email</th>
-              <th>Status</th>
-              <th>Data de Criação</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="usersTableBody">
-            <tr><td colspan="6">Carregando...</td></tr>
-          </tbody>
-        </table>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3>PAINEL ADMIN</h3>
         </div>
-      </div>
-      <div class="table-footer">
-        <span id="userCount">Mostrando 0 de 0 usuários</span>
-      </div>
-    </div>
+        <ul class="nav-menu">
+            <li class="nav-item active" data-target="overview">
+                <i class="fa-solid fa-gauge-high"></i> <span>Visão Geral</span>
+            </li>
+            <li class="nav-item" data-target="users">
+                <i class="fa-solid fa-users-gear"></i> <span>Gerenciar Usuários</span>
+            </li>
+            <li class="nav-item" data-target="financial">
+                <i class="fa-solid fa-chart-line"></i> <span>Fluxo Financeiro</span>
+            </li>
+            <li class="nav-item" data-target="logs">
+                <i class="fa-solid fa-list-check"></i> <span>Logs do Sistema</span>
+            </li>
+        </ul>
+    </aside>
 
-  </main>
+    <main class="main-content">
 
-  <footer>
-    <p>Nossos Contatos</p>
-    <div class="social-icons">
-      <a href="https://www.facebook.com/unit.br/?locale=pt_BR" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
-      <a href="https://www.instagram.com/unit_br/" target="_blank"><i class="fa-brands fa-instagram"></i></a>
-      <a href="https://www.linkedin.com/school/unit-br/" target="_blank"><i class="fa-brands fa-linkedin-in"></i></a>
-      <a href="https://x.com/unit_br" target="_blank"><i class="fa-brands fa-twitter"></i></a>
-    </div>
-  </footer>
+        <section id="view-overview" class="admin-view">
+            <div class="view-title">
+                <h2>Visão Geral</h2>
+                <p>Resumo das métricas da plataforma.</p>
+            </div>
 
-  <div id="modal" class="modal hidden">
-    <div class="modal-backdrop" id="backdrop"></div>
-    <div class="modal-panel">
-      <h2 id="modalTitle">Cadastrar Novo Usuário</h2>
-      <form id="userForm">
-        <input type="hidden" id="userId" />
-        <label>Nome Completo
-          <input id="fullName" name="fullName" type="text" placeholder="Nome Completo" required />
-        </label>
-        <label>Email
-          <input id="email" name="email" type="email" placeholder="Email" required />
-        </label>
-        <label>Nome de Usuário
-            <input id="username" name="username" type="text" placeholder="Nome de Usuário" required />
-        </label>
-        <label>Senha
-          <input id="password" name="password" type="password" placeholder="Senha" />
-        </label>
-        <label>Status/Role
-          <select id="status" name="status">
-            <option value="Ativo">Ativo</option>
-            <option value="Inativo">Inativo</option>
-            <option value="Admin">Admin</option>
-          </select>
-        </label>
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="icon-box purple"><i class="fa-solid fa-users"></i></div>
+                    <div class="kpi-data">
+                        <h3 id="kpiTotalUsers">0</h3>
+                        <span>Usuários Totais</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="icon-box gold"><i class="fa-solid fa-sack-dollar"></i></div>
+                    <div class="kpi-data">
+                        <h3 id="kpiTotalFunds">R$ 0,00</h3>
+                        <span>Total Arrecadado</span>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="icon-box green"><i class="fa-solid fa-calendar-check"></i></div>
+                    <div class="kpi-data">
+                        <h3 id="kpiActiveEvents">0</h3>
+                        <span>Eventos Ativos</span>
+                    </div>
+                </div>
+            </div>
 
-        <div class="modal-actions">
-          <button type="button" id="cancel" class="btn ghost">Cancelar</button>
-          <button type="submit" id="submitBtn" class="btn primary">Cadastrar</button>
+            <div class="chart-section glass-panel">
+                <h3>Desempenho Mensal</h3>
+                <div class="chart-wrapper">
+                    <canvas id="overviewChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-users" class="admin-view hidden">
+            <div class="view-title row">
+                <div>
+                    <h2>Usuários</h2>
+                    <p>Controle de acesso e cadastro.</p>
+                </div>
+                <button class="btn-primary-admin" id="btnNewUser">
+                    <i class="fa-solid fa-user-plus"></i> Novo Usuário
+                </button>
+            </div>
+
+            <div class="table-container glass-panel">
+                <div class="table-header-controls">
+                    <div class="search-box">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="userSearch" placeholder="Buscar por nome ou e-mail...">
+                    </div>
+                    <span id="userCountBadge" class="badge-count">0 usuários</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Usuário</th>
+                                <th>E-mail</th>
+                                <th>Perfil</th>
+                                <th>Cadastro</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-financial" class="admin-view hidden">
+            <div class="view-title">
+                <h2>Fluxo Financeiro</h2>
+                <p>Detalhamento de entradas e metas.</p>
+            </div>
+            
+            <div class="financial-stats glass-panel">
+                <div class="stat-item">
+                    <h4>Ticket Médio</h4>
+                    <span id="avgTicket">R$ 0,00</span>
+                </div>
+                <div class="stat-item">
+                    <h4>Maior Doação</h4>
+                    <span id="maxDonation">R$ 0,00</span>
+                </div>
+            </div>
+
+            <div class="chart-wrapper glass-panel">
+                <canvas id="financialChart"></canvas>
+            </div>
+        </section>
+
+        <section id="view-logs" class="admin-view hidden">
+            <div class="view-title">
+                <h2>Registro de Atividades</h2>
+                <p>Monitoramento de ações recentes.</p>
+            </div>
+            <div class="logs-list glass-panel" id="logsList">
+                </div>
+        </section>
+
+    </main>
+</div>
+
+<div id="userModal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="modalTitle">Dados do Usuário</h3>
+            <span class="close-modal"><i class="fa-solid fa-xmark"></i></span>
         </div>
-      </form>
+        <form id="userForm">
+            <input type="hidden" id="userId">
+            
+            <div class="form-group">
+                <label>Nome Completo</label>
+                <input type="text" id="userName" required>
+            </div>
+            
+            <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" id="userEmail" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Usuário (@)</label>
+                    <input type="text" id="userHandle" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="userPass" placeholder="(Vazio para manter)">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Perfil de Acesso</label>
+                <select id="userRole">
+                    <option value="Comum">Comum</option>
+                    <option value="Admin">Administrador</option>
+                </select>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel close-modal">Cancelar</button>
+                <button type="submit" class="btn-confirm">Salvar</button>
+            </div>
+        </form>
     </div>
-  </div>
+</div>
 
-  <script src="js/script.js"></script>
-  <script src="js/gerenciamento-usuarios.js"></script>
-
+<script src="js/script.js"></script>
+<script src="js/gerenciamento-usuarios.js"></script>
 </body>
 </html>

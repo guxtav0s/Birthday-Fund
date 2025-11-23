@@ -1,9 +1,11 @@
 document.addEventListener("DOMContentLoaded", function() {
     
+    // --- CONFIGURAÇÕES ---
     const DB_KEY = 'eventsDB';
     const currentUserEmail = sessionStorage.getItem("currentUserEmail");
     const currentUserName = sessionStorage.getItem("currentUserName");
 
+    // Proteção de Rota
     if (!currentUserEmail) {
         window.location.href = "autenticacao.html";
         return;
@@ -24,13 +26,14 @@ document.addEventListener("DOMContentLoaded", function() {
     const btnInvited = document.getElementById('btnInvited');
     const btnDonations = document.getElementById('btnDonations');
     
-    // Modal Elements
+    // Modal
     const editModal = document.getElementById('editEventModal');
     const editForm = document.getElementById('editForm');
     const modalTitleText = document.getElementById('modalTitleText');
     const modalHeaderBg = document.querySelector('.modal-header-bg');
     const modalIcon = document.getElementById('modalIcon');
     
+    // Campos Modal
     const inputTitle = document.getElementById('editTitle');
     const inputDate = document.getElementById('editDate');
     const inputTime = document.getElementById('editTime');
@@ -60,16 +63,30 @@ document.addEventListener("DOMContentLoaded", function() {
     let currentTab = 'hosted'; 
     let tempGuestList = [];
 
-    // Inicialização
+    // --- INICIALIZAÇÃO ---
     init();
 
     function init() {
-        // Setup Tabs
+        // Listeners das Abas
         btnHosted.addEventListener('click', () => switchTab('hosted'));
         btnInvited.addEventListener('click', () => switchTab('invited'));
         btnDonations.addEventListener('click', () => switchTab('donations'));
 
-        // Check URL
+        // DELEGAÇÃO DE EVENTOS (CORREÇÃO DO BUG DO CLIQUE)
+        // Ao invés de colocar onclick em cada botão, vigiamos a grid inteira.
+        grid.addEventListener('click', function(e) {
+            // Procura se o clique foi dentro de um botão com a classe 'js-open-modal'
+            const btn = e.target.closest('.js-open-modal');
+            
+            if (btn) {
+                const id = btn.getAttribute('data-id');
+                if (id) {
+                    openEventModal(parseInt(id));
+                }
+            }
+        });
+
+        // Verifica URL
         const urlParams = new URLSearchParams(window.location.search);
         const openId = urlParams.get('editId');
 
@@ -95,16 +112,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function switchTab(tab) {
         currentTab = tab;
-        
         btnHosted.classList.toggle('active', tab === 'hosted');
         btnInvited.classList.toggle('active', tab === 'invited');
         btnDonations.classList.toggle('active', tab === 'donations');
-        
         loadAndRender();
     }
 
     // ==========================================
-    // RENDERIZAÇÃO DA GRID
+    // RENDERIZAÇÃO (Sem onclick inline)
     // ==========================================
     function loadAndRender() {
         const allEvents = getEvents();
@@ -119,23 +134,17 @@ document.addEventListener("DOMContentLoaded", function() {
                 isGuest = evt.Lista_Convidados.some(email => email && email.trim() === currentUserEmail);
             }
 
-            if (currentTab === 'hosted') {
-                return isOwner;
-            } 
-            else if (currentTab === 'invited') {
-                return isGuest && !isOwner && !isCampaign;
-            } 
-            else if (currentTab === 'donations') {
-                return isCampaign && !isOwner;
-            }
+            if (currentTab === 'hosted') return isOwner;
+            else if (currentTab === 'invited') return isGuest && !isOwner && !isCampaign;
+            else if (currentTab === 'donations') return isCampaign && !isOwner;
             return false;
         });
 
         if (filteredEvents.length === 0) {
             let msg = '';
             if(currentTab === 'hosted') msg = 'Você ainda não criou nenhum evento.';
-            else if(currentTab === 'invited') msg = 'Nenhum convite de festa pendente.';
-            else msg = 'Nenhuma campanha de doação disponível no momento.';
+            else if(currentTab === 'invited') msg = 'Nenhum convite pendente.';
+            else msg = 'Nenhuma campanha disponível.';
             
             grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#ccc; padding:40px;">${msg}</p>`;
             return;
@@ -145,26 +154,16 @@ document.addEventListener("DOMContentLoaded", function() {
             const isOwner = evt.FK_Usuario === currentUserEmail;
             const isDonation = evt.Meta_Arrecadacao && parseFloat(evt.Meta_Arrecadacao) > 0;
             
-            const stripClass = isDonation ? 'donate' : 'invite';
-            let roleText = '';
-            
-            if (isOwner) roleText = 'Organizador';
-            else if (isDonation) roleText = 'Campanha Aberta';
-            else if (evt.Confirmado_Presenca) roleText = 'Confirmado';
-            else roleText = 'Pendente';
+            const stripClass = isDonation ? 'donate' : 'hosted';
+            const stripClassFinal = (!isOwner && !isDonation) ? 'invited' : stripClass;
 
-            // Configuração do Botão do Card
+            let roleText = isOwner ? 'Organizador' : (isDonation ? 'Campanha' : (evt.Confirmado_Presenca ? 'Confirmado' : 'Pendente'));
+            
             let btnText = '', btnClass = '', btnIcon = '';
-            
-            if (isOwner) {
-                btnText = 'Gerenciar'; btnClass = 'btn-edit'; btnIcon = 'fa-pen';
-            } else if (isDonation) {
-                btnText = 'Ver & Doar'; btnClass = 'btn-view'; btnIcon = 'fa-hand-holding-dollar';
-            } else {
-                btnText = 'Responder'; btnClass = 'btn-view'; btnIcon = 'fa-envelope';
-            }
+            if (isOwner) { btnText = 'Gerenciar'; btnClass = 'btn-edit'; btnIcon = 'fa-pen'; }
+            else if (isDonation) { btnText = 'Ver & Doar'; btnClass = 'btn-view'; btnIcon = 'fa-heart'; }
+            else { btnText = 'Responder'; btnClass = 'btn-view'; btnIcon = 'fa-envelope'; }
 
-            // Barra de progresso visual para card
             let progressHTML = '';
             if (isDonation) {
                 const meta = parseFloat(evt.Meta_Arrecadacao);
@@ -175,11 +174,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
             const card = document.createElement('div');
             card.className = 'manage-card';
+            
+            // AQUI ESTÁ A CORREÇÃO: Usamos data-id e classe js-open-modal
             card.innerHTML = `
-                <div class="status-strip ${stripClass}"></div>
+                <div class="status-strip ${stripClassFinal}"></div>
                 <div class="card-header">
                     <div class="date-badge">
-                        <span class="d">${evt.Data.split('/')[0]}</span>
+                        <span class="d">${evt.Data ? evt.Data.split('/')[0] : '--'}</span>
                         <span class="m">${monthName(evt.Data)}</span>
                     </div>
                     <div class="role-badge">${roleText}</div>
@@ -191,7 +192,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     ${progressHTML}
                 </div>
                 <div class="card-actions">
-                    <button class="btn-action ${btnClass}" onclick="window.openEventModal(${evt.ID_Evento})">
+                    <button class="btn-action ${btnClass} js-open-modal" data-id="${evt.ID_Evento}">
                         <i class="fa-solid ${btnIcon}"></i> ${btnText}
                     </button>
                 </div>
@@ -201,10 +202,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==========================================
-    // MODAL INTELIGENTE
+    // MODAL LOGIC
     // ==========================================
-    
-    window.openEventModal = function(id) {
+    function openEventModal(id) {
         const allEvents = getEvents();
         const evt = allEvents.find(e => e.ID_Evento === id);
         if (!evt) return;
@@ -212,7 +212,6 @@ document.addEventListener("DOMContentLoaded", function() {
         const isOwner = evt.FK_Usuario === currentUserEmail;
         const isDonation = evt.Meta_Arrecadacao && parseFloat(evt.Meta_Arrecadacao) > 0;
 
-        // 1. Preenche Inputs
         inputId.value = evt.ID_Evento;
         inputTitle.value = evt.Titulo;
         inputDate.value = evt.Data;
@@ -222,36 +221,35 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const inputs = editForm.querySelectorAll('input:not([type=hidden]), textarea');
 
-        // 2. Define Estilos e Áreas visíveis
+        // Reset UI
         ownerActions.classList.add('hidden');
         guestActions.classList.add('hidden');
         donationActions.classList.add('hidden');
         hostControls.classList.add('hidden');
         metaDisplayArea.classList.add('hidden');
-
-        // Reset header style
+        
         modalHeaderBg.style.background = "linear-gradient(135deg, #5b2be0, #8A2BE2)";
         modalIcon.className = "fa-solid fa-calendar-day";
         modalIcon.style.color = "rgba(255,255,255,0.3)";
 
         if (isOwner) {
-            // === DONO ===
+            // DONO
             modalTitleText.innerText = "Gerenciar Evento";
             inputs.forEach(i => i.disabled = false);
             
-            hostControls.classList.remove('hidden'); 
-            ownerActions.classList.remove('hidden'); 
+            hostControls.classList.remove('hidden');
+            ownerActions.classList.remove('hidden');
             
             tempGuestList = Array.isArray(evt.Lista_Convidados) ? [...evt.Lista_Convidados] : [];
             renderGuestList();
 
         } else if (isDonation) {
-            // === DOADOR (PÚBLICO) ===
+            // DOAÇÃO
             modalTitleText.innerText = "Campanha Solidária";
             inputs.forEach(i => i.disabled = true);
             
-            donationActions.classList.remove('hidden'); 
-            metaDisplayArea.classList.remove('hidden'); 
+            donationActions.classList.remove('hidden');
+            metaDisplayArea.classList.remove('hidden');
             
             modalHeaderBg.style.background = "linear-gradient(135deg, #FFD700, #FDB931)";
             modalIcon.className = "fa-solid fa-hand-holding-heart";
@@ -264,17 +262,13 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById('modalRaisedValue').innerText = `Arrecadado: R$ ${atual}`;
             document.getElementById('modalMetaValue').innerText = `Meta: R$ ${meta}`;
 
-            // Ação Contribuir (Sem Prompt)
-            btnContribute.onclick = () => {
-                // Simulação: Adiciona 50 reais automaticamente
-                donateToEvent(id, 50.00);
-            };
+            btnContribute.onclick = () => donateToEvent(id, 50.00); // Valor fixo
 
         } else {
-            // === CONVIDADO (FESTA PRIVADA) ===
+            // CONVITE
             modalTitleText.innerText = "Convite de Festa";
             inputs.forEach(i => i.disabled = true);
-            guestActions.classList.remove('hidden'); 
+            guestActions.classList.remove('hidden');
 
             if (evt.Confirmado_Presenca) {
                 btnConfirm.innerHTML = '<i class="fa-solid fa-check"></i> Confirmado';
@@ -291,33 +285,28 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         editModal.classList.remove('hidden');
-    };
+    }
 
-    window.closeEditModal = function() {
+    function closeEditModal() {
         editModal.classList.add('hidden');
-    };
+    }
 
     // ==========================================
-    // LÓGICA DE DOAÇÃO (Automática)
+    // AÇÕES
     // ==========================================
     function donateToEvent(id, amount) {
         let allEvents = getEvents();
         const idx = allEvents.findIndex(e => e.ID_Evento === id);
-        
         if (idx !== -1) {
             const atual = parseFloat(allEvents[idx].Valor_Arrecadado || 0);
             allEvents[idx].Valor_Arrecadado = atual + amount;
-            
             saveEvents(allEvents);
-            alert(`Chave PIX gerada com sucesso!\n(Simulação: Doação de R$ ${amount} registrada)`);
+            alert(`Doação de R$ ${amount} registrada!`);
             closeEditModal();
             loadAndRender();
         }
     }
 
-    // ==========================================
-    // LÓGICA DE RSVP
-    // ==========================================
     function rsvpEvent(id, status) {
         let allEvents = getEvents();
         const idx = allEvents.findIndex(e => e.ID_Evento === id);
@@ -327,7 +316,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 allEvents[idx].Confirmado_Presenca = true;
                 alert("Presença confirmada!");
             } else {
-                if(confirm("Recusar convite? Ele será removido.")) {
+                if(confirm("Recusar convite?")) {
                     allEvents[idx].Lista_Convidados = allEvents[idx].Lista_Convidados.filter(e => e !== currentUserEmail);
                 } else return;
             }
@@ -337,9 +326,7 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // ==========================================
-    // EDIÇÃO DO DONO
-    // ==========================================
+    // --- Dono: Convidados ---
     if(btnAddGuest) {
         btnAddGuest.addEventListener('click', () => {
             const email = newGuestInput.value.trim();
@@ -357,16 +344,24 @@ document.addEventListener("DOMContentLoaded", function() {
         guestListDisplay.innerHTML = '';
         tempGuestList.forEach((email, index) => {
             const li = document.createElement('li');
-            li.innerHTML = `<span>${email}</span><i class="fa-solid fa-trash remove-guest-icon" onclick="removeGuestFromTemp(${index})"></i>`;
+            li.innerHTML = `
+                <span>${email}</span>
+                <i class="fa-solid fa-trash remove-guest-icon" data-index="${index}"></i>
+            `;
             guestListDisplay.appendChild(li);
+        });
+
+        // Adiciona listener nos ícones de lixo gerados dinamicamente
+        document.querySelectorAll('.remove-guest-icon').forEach(icon => {
+            icon.addEventListener('click', function() {
+                const idx = this.getAttribute('data-index');
+                tempGuestList.splice(idx, 1);
+                renderGuestList();
+            });
         });
     }
 
-    window.removeGuestFromTemp = function(index) {
-        tempGuestList.splice(index, 1);
-        renderGuestList();
-    };
-
+    // --- Salvar / Excluir ---
     editForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const id = parseInt(inputId.value);
@@ -379,7 +374,7 @@ document.addEventListener("DOMContentLoaded", function() {
             allEvents[idx].Hora = inputTime.value;
             allEvents[idx].Local = inputLocation.value;
             allEvents[idx].Descricao = inputDescription.value;
-            allEvents[idx].Lista_Convidados = tempGuestList; 
+            allEvents[idx].Lista_Convidados = tempGuestList;
 
             saveEvents(allEvents);
             closeEditModal();
@@ -388,23 +383,25 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-    btnDelete.addEventListener('click', () => {
-        if(confirm("Excluir evento permanentemente?")) {
-            const id = parseInt(inputId.value);
-            let allEvents = getEvents();
-            allEvents = allEvents.filter(e => e.ID_Evento !== id);
-            saveEvents(allEvents);
-            closeEditModal();
-            loadAndRender();
-        }
-    });
+    if(btnDelete) {
+        btnDelete.addEventListener('click', () => {
+            if(confirm("Excluir evento permanentemente?")) {
+                const id = parseInt(inputId.value);
+                let allEvents = getEvents();
+                allEvents = allEvents.filter(e => e.ID_Evento !== id);
+                saveEvents(allEvents);
+                closeEditModal();
+                loadAndRender();
+            }
+        });
+    }
 
-    // Fechar ao clicar fora
-    window.addEventListener('click', (e) => {
-        if (e.target === editModal) closeEditModal();
-    });
+    // Utils
+    if(closeBtn) closeBtn.addEventListener('click', closeEditModal);
+    window.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
 
     function monthName(dateStr) {
+        if(!dateStr) return "";
         const monthMap = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
         const parts = dateStr.split('/');
         return parts.length > 1 ? monthMap[parseInt(parts[1]) - 1] : "";
