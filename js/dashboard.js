@@ -214,6 +214,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 actionBtn.onclick = function() { confirmAttendance(evt.ID_Evento); };
             }
         } else {
+            // ==========================================
+            // LÓGICA DE DOAÇÃO ATUALIZADA (REDIRECIONAMENTO)
+            // ==========================================
             headerColor.classList.add('gold-theme');
             icon.className = "fa-solid fa-hand-holding-dollar";
             badge.innerText = "CAMPANHA";
@@ -230,15 +233,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
             actionBtn.innerText = "Contribuir Agora";
             actionBtn.classList.add('btn-donate');
-            // AQUI: Removido o prompt, doação automática
+            
+            // Aqui fazemos o redirecionamento com parâmetros para abrir o Pix lá
             actionBtn.onclick = function() { 
-                donateToEvent(id, 50.00); 
+                window.location.href = `gerenciamento-eventos.html?openPix=true&eventId=${id}`;
             };
         }
 
         if(detailModal) detailModal.classList.add('active');
     };
 
+    // Mantive a função caso queira usar em outro contexto, mas o fluxo principal usa redirect agora
     function donateToEvent(id, amount) {
         let allEvents = getLocalEvents();
         const idx = allEvents.findIndex(e => e.ID_Evento === id);
@@ -247,14 +252,13 @@ document.addEventListener("DOMContentLoaded", function() {
             allEvents[idx].Valor_Arrecadado = atual + amount;
             saveLocalEvents(allEvents);
             
-            // Atualiza Modal
             document.getElementById('modalArrecadado').innerText = `R$ ${allEvents[idx].Valor_Arrecadado}`;
             const meta = parseFloat(allEvents[idx].Meta_Arrecadacao);
             const percent = Math.min((allEvents[idx].Valor_Arrecadado / meta) * 100, 100);
             document.getElementById('modalProgressBar').style.width = `${percent}%`;
 
-            alert(`Chave PIX gerada!\n(Simulação: Doação de R$ ${amount} computada)`);
-            loadDashboard(); // Atualiza lista atrás
+            alert(`Doação simulada de R$ ${amount} realizada com sucesso!`);
+            loadDashboard();
         }
     }
 

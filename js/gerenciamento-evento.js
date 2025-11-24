@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", function() {
         btnInvited.addEventListener('click', () => switchTab('invited'));
         btnDonations.addEventListener('click', () => switchTab('donations'));
 
-        // DELEGAÇÃO DE EVENTOS (CORREÇÃO DO BUG DO CLIQUE)
+        // DELEGAÇÃO DE EVENTOS
         grid.addEventListener('click', function(e) {
             const btn = e.target.closest('.js-open-modal');
             
@@ -91,14 +91,41 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        // Verifica URL
+        // Verifica URL para parâmetros
         const urlParams = new URLSearchParams(window.location.search);
         const openId = urlParams.get('editId');
+        
+        // --- NOVOS PARÂMETROS PARA PIX ---
+        const openPix = urlParams.get('openPix');
+        const eventId = urlParams.get('eventId');
 
         loadAndRender();
 
         if(openId) {
             openEventModal(parseInt(openId));
+            window.history.replaceState({}, document.title, "gerenciamento-eventos.html");
+        }
+
+        // --- LÓGICA DE ABERTURA AUTOMÁTICA DO PIX ---
+        if(openPix === 'true' && eventId) {
+            const id = parseInt(eventId);
+            
+            // 1. Muda para aba de doações
+            switchTab('donations');
+
+            // 2. Define o ID no botão de contribuição (necessário para o "OK, Entendi" funcionar)
+            if(btnContribute) {
+                btnContribute.dataset.eventId = id;
+            }
+
+            // 3. Abre o modal PIX diretamente
+            if(pixModal) {
+                pixModal.classList.remove('hidden');
+                pixModal.classList.add('active'); // CSS de backdrop
+                startPixTimer();
+            }
+
+            // 4. Limpa a URL
             window.history.replaceState({}, document.title, "gerenciamento-eventos.html");
         }
     }
@@ -256,7 +283,10 @@ document.addEventListener("DOMContentLoaded", function() {
             alert(`Pagamento PIX Simulatório efetuado. Doação de R$ ${amount} computada!`);
             
             loadAndRender(); // Atualiza a lista na tela de gerenciamento
-            openEventModal(id);
+            
+            // Reabre o modal de detalhes para ver o progresso (opcional, mas bom feedback)
+            // openEventModal(id); 
+            // OU apenas fecha tudo:
         }
     }
 
@@ -335,7 +365,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             btnContribute.dataset.eventId = id; // Armazena o ID no botão de Contribuição
             btnContribute.onclick = () => { 
-                // CORREÇÃO: Abre o modal Pix
+                // Abre o modal Pix
                 pixModal.classList.remove('hidden');
                 pixModal.classList.add('active'); // Garante que o CSS de backdrop funcione
                 startPixTimer();
