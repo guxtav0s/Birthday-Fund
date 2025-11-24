@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     // --- CONFIGURAÇÕES ---
     const DB_KEY = 'eventsDB';
+    const USERS_KEY = 'usersDB'; // Banco de usuários para buscar o PIX
     const currentUserEmail = sessionStorage.getItem("currentUserEmail");
     const currentUserName = sessionStorage.getItem("currentUserName");
 
@@ -64,7 +65,10 @@ document.addEventListener("DOMContentLoaded", function() {
     const pixTimerDisplay = document.getElementById('pixTimer');
     const pixOkBtn = document.getElementById('pixOkBtn');
     const closePixModalBtn = document.getElementById('closePixModalBtn');
+    const pixCodeInput = document.getElementById('pixCode'); // Input Copia e Cola
+    const pixQrImage = document.getElementById('pixQrImage')
     let pixCountdown; 
+    let currentPixEventId = null;
 
     // Estado
     let currentTab = 'hosted'; 
@@ -113,20 +117,53 @@ document.addEventListener("DOMContentLoaded", function() {
             // 1. Muda para aba de doações
             switchTab('donations');
 
-            // 2. Define o ID no botão de contribuição (necessário para o "OK, Entendi" funcionar)
-            if(btnContribute) {
-                btnContribute.dataset.eventId = id;
-            }
+            // 2. Define o ID e inicia o fluxo
+            currentPixEventId = id;
+            if(btnContribute) btnContribute.dataset.eventId = id;
 
-            // 3. Abre o modal PIX diretamente
+            // 3. Atualiza dados do Pix (Chave real) e abre modal
+            updatePixDataFromOwner(id);
+            
             if(pixModal) {
                 pixModal.classList.remove('hidden');
-                pixModal.classList.add('active'); // CSS de backdrop
+                pixModal.classList.add('active'); 
                 startPixTimer();
             }
 
             // 4. Limpa a URL
             window.history.replaceState({}, document.title, "gerenciamento-eventos.html");
+        }
+    }
+
+    // ==========================================
+    // INTEGRAÇÃO PIX: BUSCAR DADOS REAIS
+    // ==========================================
+    function updatePixDataFromOwner(eventId) {
+        const allEvents = getEvents();
+        const evt = allEvents.find(e => e.ID_Evento === eventId);
+        
+        let chavePixExibida = "CHAVE-PADRAO-DO-SISTEMA"; // Fallback
+        
+        if (evt) {
+            // Busca o usuário dono do evento
+            const users = JSON.parse(localStorage.getItem(USERS_KEY)) || [];
+            const owner = users.find(u => u.Email === evt.FK_Usuario);
+
+            // Se o dono tiver configurado a chave no perfil
+            if (owner && owner.Dados_Bancarios && owner.Dados_Bancarios.Chave) {
+                chavePixExibida = owner.Dados_Bancarios.Chave;
+            }
+        }
+
+        // Atualiza o input "Copia e Cola"
+        if (pixCodeInput) {
+            pixCodeInput.value = chavePixExibida;
+        }
+
+        // Atualiza o QR Code visualmente (usando API de QR Code)
+        if (pixQrImage) {
+            // Gera um QR Code real com o texto da chave
+            pixQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(chavePixExibida)}`;
         }
     }
 
@@ -231,42 +268,31 @@ document.addEventListener("DOMContentLoaded", function() {
             grid.appendChild(card);
         });
     }
-// ==========================================
-    // LÓGICA DO MODAL PIX E SUCESSO
+
     // ==========================================
-    
-    // Elementos do Modal de Sucesso
-    const successModal = document.getElementById('successModal');
-    const btnCloseSuccess = document.getElementById('btnCloseSuccess');
-
-    // Variável para simular o polling da API (verificação automática)
-    let pixCheckInterval = null; 
-
+    // LÓGICA DO MODAL PIX (COMUM)
+    // ==========================================
     window.closePixModal = function() {
         if(pixCountdown) clearInterval(pixCountdown);
-        if(pixCheckInterval) clearInterval(pixCheckInterval); // Para a verificação da API
-        
         if(pixModal) {
             pixModal.classList.add('hidden');
-            pixModal.classList.remove('active');
+            pixModal.classList.remove('active'); 
         }
         if(pixTimerDisplay) pixTimerDisplay.innerText = "10:00"; 
     };
 
     window.copyPixCode = function() {
         const pixCodeInput = document.getElementById('pixCode');
-        pixCodeInput.select();
-        document.execCommand('copy');
-        // Pequeno feedback visual no botão em vez de alert intrusivo
-        const btnIcon = document.querySelector('.btn-icon-action i');
-        if(btnIcon) {
-            btnIcon.className = "fa-solid fa-check";
-            setTimeout(() => btnIcon.className = "fa-regular fa-copy", 2000);
+        if (pixCodeInput) {
+            pixCodeInput.select();
+            navigator.clipboard.writeText(pixCodeInput.value)
+                .then(() => alert('Código PIX Copiado!'))
+                .catch(() => alert('Erro ao copiar. Tente manualmente.'));
         }
     };
 
     function startPixTimer() {
-        let timeLeft = 600; // 10 minutos
+        let timeLeft = 600; // 10 minutos em segundos
         if(pixCountdown) clearInterval(pixCountdown);
 
         pixCountdown = setInterval(() => {
@@ -279,36 +305,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (timeLeft <= 0) {
                 clearInterval(pixCountdown);
-                alert("Tempo esgotado para o pagamento Pix.");
+                alert("Tempo esgotado para o pagamento Pix. Tente novamente.");
                 window.closePixModal();
             }
         }, 1000);
-
-        /* =========================================================================
-           INTEGRAÇÃO API PIX (VIA API BACKEND) - SIMULADA AQUI
-           Este código rodará em paralelo ao timer para detectar o pagamento sozinho.
-           =========================================================================
-           
-           pixCheckInterval = setInterval(async () => {
-               try {
-                   // Exemplo de chamada ao backend para ver se o status mudou para "PAID"
-                   const response = await fetch(`https://api.seusite.com/pix/status/${currentTxId}`);
-                   const data = await response.json();
-
-                   if (data.status === 'CONCLUIDO') {
-                       clearInterval(pixCheckInterval); // Para de checar
-                       
-                       // Pega o ID do evento que está sendo pago
-                       const idEvento = parseInt(btnContribute.dataset.eventId);
-                       
-                       // Chama a função de sucesso automaticamente
-                       processDonationSimulated(idEvento); 
-                   }
-               } catch (error) {
-                   console.error("Erro ao verificar status Pix", error);
-               }
-           }, 5000); // Verifica a cada 5 segundos
-        */
     }
     
     function processDonationSimulated(id) {
@@ -316,7 +316,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const idx = allEvents.findIndex(e => e.ID_Evento === id);
 
         if (idx !== -1) {
-            const amount = 50.00; // Valor fixo simulado
+            const amount = 50.00; // Valor fixo de doação simulado
             const atual = parseFloat(allEvents[idx].Valor_Arrecadado || 0);
             allEvents[idx].Valor_Arrecadado = atual + amount;
             saveEvents(allEvents);
@@ -324,43 +324,46 @@ document.addEventListener("DOMContentLoaded", function() {
             // 1. Fecha o modal do Pix
             window.closePixModal();
 
-            // 2. Abre o Modal de Sucesso (NOVO)
+            // 2. Abre o Modal de Sucesso
+            const successModal = document.getElementById('successModal');
             if(successModal) {
                 successModal.classList.remove('hidden');
+            } else {
+                // Fallback se não tiver o modal de sucesso no HTML ainda
+                alert(`Pagamento PIX Simulado efetuado. Doação de R$ ${amount} computada!`);
             }
-
-            // 3. Atualiza a tela de fundo
+            
             loadAndRender(); 
-            // openEventModal(id); // Opcional: reabrir o modal de detalhes atualizado
         }
     }
 
-    // Botão "OK, Entendi" (Simula que o usuário pagou)
     if (pixOkBtn) {
         pixOkBtn.addEventListener('click', () => {
-            // Recupera o ID que foi salvo no botão 'Contribuir' ao abrir o modal
-            const btnContribute = document.getElementById('btnContribute'); // Garante pegar o botão certo
-            const id = parseInt(btnContribute.dataset.eventId);
-            
-            if(id) {
-                processDonationSimulated(id);
+            // Se veio da URL (currentPixEventId) ou do dataset do botão (btnContribute)
+            let id = currentPixEventId;
+            if (!id && btnContribute && btnContribute.dataset.eventId) {
+                id = parseInt(btnContribute.dataset.eventId);
             }
-        });
-    }
 
-    // Botão Fechar do Modal de Sucesso
-    if(btnCloseSuccess) {
-        btnCloseSuccess.addEventListener('click', () => {
-            successModal.classList.add('hidden');
+            if(id) processDonationSimulated(id);
         });
     }
 
     if(closePixModalBtn) {
         closePixModalBtn.addEventListener('click', window.closePixModal);
     }
-    
+
+    // Fechar modal de sucesso
+    const btnCloseSuccess = document.getElementById('btnCloseSuccess');
+    const successModal = document.getElementById('successModal');
+    if(btnCloseSuccess && successModal) {
+        btnCloseSuccess.addEventListener('click', () => {
+            successModal.classList.add('hidden');
+        });
+    }
+
     // ==========================================
-    // MODAL DETALHES/EDIÇÃO
+    // MODAL DE DETALHES
     // ==========================================
     function openEventModal(id) {
         const allEvents = getEvents();
@@ -377,8 +380,6 @@ document.addEventListener("DOMContentLoaded", function() {
         inputLocation.value = evt.Local;
         inputDescription.value = evt.Descricao || "";
 
-        const inputs = editForm.querySelectorAll('input:not([type=hidden]), textarea');
-
         // Reset UI
         ownerActions.classList.add('hidden');
         guestActions.classList.add('hidden');
@@ -391,8 +392,8 @@ document.addEventListener("DOMContentLoaded", function() {
         modalIcon.style.color = "rgba(255,255,255,0.3)";
 
         if (isOwner) {
-            // DONO
             modalTitleText.innerText = "Gerenciar Evento";
+            const inputs = editForm.querySelectorAll('input:not([type=hidden]), textarea');
             inputs.forEach(i => i.disabled = false);
             
             hostControls.classList.remove('hidden');
@@ -402,8 +403,8 @@ document.addEventListener("DOMContentLoaded", function() {
             renderGuestList();
 
         } else if (isDonation) {
-            // DOAÇÃO
             modalTitleText.innerText = "Campanha Solidária";
+            const inputs = editForm.querySelectorAll('input:not([type=hidden]), textarea');
             inputs.forEach(i => i.disabled = true);
             
             donationActions.classList.remove('hidden');
@@ -420,18 +421,26 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById('modalRaisedValue').innerText = `Arrecadado: R$ ${atual}`;
             document.getElementById('modalMetaValue').innerText = `Meta: R$ ${meta}`;
 
-            btnContribute.dataset.eventId = id; // Armazena o ID no botão de Contribuição
-            btnContribute.onclick = () => { 
-                // Abre o modal Pix
-                pixModal.classList.remove('hidden');
-                pixModal.classList.add('active'); // Garante que o CSS de backdrop funcione
-                startPixTimer();
-                closeEditModal(); // Fecha o modal de detalhes/edição
-            };
+            if(btnContribute) {
+                btnContribute.dataset.eventId = id;
+                btnContribute.onclick = () => {
+                    // Chama a função de atualizar dados e abre o modal
+                    updatePixDataFromOwner(id);
+                    currentPixEventId = id;
+                    
+                    if(editModal) editModal.classList.add('hidden');
+                    if(pixModal) {
+                        pixModal.classList.remove('hidden');
+                        pixModal.classList.add('active');
+                        startPixTimer();
+                    }
+                };
+            }
 
         } else {
-            // CONVITE
+            // CONVITE (Mantido)
             modalTitleText.innerText = "Convite de Festa";
+            const inputs = editForm.querySelectorAll('input:not([type=hidden]), textarea');
             inputs.forEach(i => i.disabled = true);
             guestActions.classList.remove('hidden');
 
@@ -452,41 +461,30 @@ document.addEventListener("DOMContentLoaded", function() {
         editModal.classList.remove('hidden');
     }
 
-    function closeEditModal() {
+    window.closeEditModal = function() {
         editModal.classList.add('hidden');
-    }
+    };
 
     // ==========================================
-    // AÇÕES
+    // AÇÕES EXTRAS (RSVP, DONO)
     // ==========================================
     function rsvpEvent(id, status) {
+        // ... (Lógica de RSVP mantida igual) ...
         let allEvents = getEvents();
         const idx = allEvents.findIndex(e => e.ID_Evento === id);
-
         if(idx !== -1) {
-            if(status) {
-                allEvents[idx].Confirmado_Presenca = true;
-                alert("Presença confirmada!");
-            } else {
-                if(confirm("Recusar convite?")) {
-                    allEvents[idx].Lista_Convidados = allEvents[idx].Lista_Convidados.filter(e => e !== currentUserEmail);
-                } else return;
-            }
-            saveEvents(allEvents);
-            closeEditModal();
-            loadAndRender();
+            if(status) { allEvents[idx].Confirmado_Presenca = true; alert("Presença confirmada!"); }
+            else { if(confirm("Recusar?")) allEvents[idx].Lista_Convidados = allEvents[idx].Lista_Convidados.filter(e=>e!==currentUserEmail); else return; }
+            saveEvents(allEvents); closeEditModal(); loadAndRender();
         }
     }
 
-    // --- Dono: Convidados ---
     if(btnAddGuest) {
         btnAddGuest.addEventListener('click', () => {
             const email = newGuestInput.value.trim();
             if (email && email.includes('@')) {
                 if (!tempGuestList.includes(email)) {
-                    tempGuestList.push(email);
-                    renderGuestList();
-                    newGuestInput.value = '';
+                    tempGuestList.push(email); renderGuestList(); newGuestInput.value = '';
                 } else alert('Já adicionado.');
             } else alert('E-mail inválido.');
         });
@@ -496,30 +494,22 @@ document.addEventListener("DOMContentLoaded", function() {
         guestListDisplay.innerHTML = '';
         tempGuestList.forEach((email, index) => {
             const li = document.createElement('li');
-            li.innerHTML = `
-                <span>${email}</span>
-                <i class="fa-solid fa-trash remove-guest-icon" data-index="${index}"></i>
-            `;
+            li.innerHTML = `<span>${email}</span><i class="fa-solid fa-trash remove-guest-icon" data-index="${index}"></i>`;
             guestListDisplay.appendChild(li);
         });
-
-        // Adiciona listener nos ícones de lixo gerados dinamicamente
         document.querySelectorAll('.remove-guest-icon').forEach(icon => {
             icon.addEventListener('click', function() {
                 const idx = this.getAttribute('data-index');
-                tempGuestList.splice(idx, 1);
-                renderGuestList();
+                tempGuestList.splice(idx, 1); renderGuestList();
             });
         });
     }
 
-    // --- Salvar / Excluir ---
     editForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const id = parseInt(inputId.value);
         let allEvents = getEvents();
         const idx = allEvents.findIndex(ev => ev.ID_Evento === id);
-
         if (idx !== -1) {
             allEvents[idx].Titulo = inputTitle.value;
             allEvents[idx].Data = inputDate.value;
@@ -527,34 +517,27 @@ document.addEventListener("DOMContentLoaded", function() {
             allEvents[idx].Local = inputLocation.value;
             allEvents[idx].Descricao = inputDescription.value;
             allEvents[idx].Lista_Convidados = tempGuestList;
-
-            saveEvents(allEvents);
-            closeEditModal();
-            loadAndRender();
-            alert('Evento atualizado!');
+            saveEvents(allEvents); closeEditModal(); loadAndRender(); alert('Evento atualizado!');
         }
     });
 
     if(btnDelete) {
         btnDelete.addEventListener('click', () => {
-            if(confirm("Excluir evento permanentemente?")) {
+            if(confirm("Excluir evento?")) {
                 const id = parseInt(inputId.value);
                 let allEvents = getEvents();
                 allEvents = allEvents.filter(e => e.ID_Evento !== id);
-                saveEvents(allEvents);
-                closeEditModal();
-                loadAndRender();
+                saveEvents(allEvents); closeEditModal(); loadAndRender();
             }
         });
     }
 
-    // Utils
     if(closeBtn) closeBtn.addEventListener('click', closeEditModal);
     
-    // Listener de clique para fechar modais ao clicar fora.
     window.addEventListener('click', (e) => { 
         if (e.target === editModal) closeEditModal(); 
         if (e.target === pixModal) window.closePixModal();
+        if (e.target === successModal) successModal.classList.add('hidden');
     });
 
     function monthName(dateStr) {
