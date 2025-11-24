@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const btnInvited = document.getElementById('btnInvited');
     const btnDonations = document.getElementById('btnDonations');
     
-    // Modal
+    // Modal de Edição/Detalhes
     const editModal = document.getElementById('editEventModal');
     const editForm = document.getElementById('editForm');
     const modalTitleText = document.getElementById('modalTitleText');
@@ -59,6 +59,13 @@ document.addEventListener("DOMContentLoaded", function() {
     const btnContribute = document.getElementById('btnContribute');
     const closeBtn = document.querySelector('.close-modal-btn');
 
+    // VARIÁVEIS DO MODAL PIX
+    const pixModal = document.getElementById('pixModal');
+    const pixTimerDisplay = document.getElementById('pixTimer');
+    const pixOkBtn = document.getElementById('pixOkBtn');
+    const closePixModalBtn = document.getElementById('closePixModalBtn');
+    let pixCountdown; 
+
     // Estado
     let currentTab = 'hosted'; 
     let tempGuestList = [];
@@ -73,9 +80,7 @@ document.addEventListener("DOMContentLoaded", function() {
         btnDonations.addEventListener('click', () => switchTab('donations'));
 
         // DELEGAÇÃO DE EVENTOS (CORREÇÃO DO BUG DO CLIQUE)
-        // Ao invés de colocar onclick em cada botão, vigiamos a grid inteira.
         grid.addEventListener('click', function(e) {
-            // Procura se o clique foi dentro de um botão com a classe 'js-open-modal'
             const btn = e.target.closest('.js-open-modal');
             
             if (btn) {
@@ -119,7 +124,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==========================================
-    // RENDERIZAÇÃO (Sem onclick inline)
+    // RENDERIZAÇÃO
     // ==========================================
     function loadAndRender() {
         const allEvents = getEvents();
@@ -175,7 +180,6 @@ document.addEventListener("DOMContentLoaded", function() {
             const card = document.createElement('div');
             card.className = 'manage-card';
             
-            // AQUI ESTÁ A CORREÇÃO: Usamos data-id e classe js-open-modal
             card.innerHTML = `
                 <div class="status-strip ${stripClassFinal}"></div>
                 <div class="card-header">
@@ -202,7 +206,74 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // ==========================================
-    // MODAL LOGIC
+    // LÓGICA DO MODAL PIX (COMUM)
+    // ==========================================
+    window.closePixModal = function() {
+        if(pixCountdown) clearInterval(pixCountdown);
+        if(pixModal) {
+            pixModal.classList.add('hidden');
+            pixModal.classList.remove('active'); // Remove a classe active também
+        }
+        if(pixTimerDisplay) pixTimerDisplay.innerText = "10:00"; 
+    };
+
+    window.copyPixCode = function() {
+        const pixCodeInput = document.getElementById('pixCode');
+        pixCodeInput.select();
+        document.execCommand('copy');
+        alert('Código PIX Copiado!');
+    };
+
+    function startPixTimer() {
+        let timeLeft = 600; // 10 minutos em segundos
+        if(pixCountdown) clearInterval(pixCountdown);
+
+        pixCountdown = setInterval(() => {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if(pixTimerDisplay) pixTimerDisplay.innerText = timeStr;
+
+            if (timeLeft <= 0) {
+                clearInterval(pixCountdown);
+                alert("Tempo esgotado para o pagamento Pix.");
+                window.closePixModal();
+            }
+        }, 1000);
+    }
+    
+    function processDonationSimulated(id) {
+        let allEvents = getEvents();
+        const idx = allEvents.findIndex(e => e.ID_Evento === id);
+
+        if (idx !== -1) {
+            const amount = 50.00; // Valor fixo de doação simulado
+            const atual = parseFloat(allEvents[idx].Valor_Arrecadado || 0);
+            allEvents[idx].Valor_Arrecadado = atual + amount;
+            saveEvents(allEvents);
+            alert(`Pagamento PIX Simulatório efetuado. Doação de R$ ${amount} computada!`);
+            
+            loadAndRender(); // Atualiza a lista na tela de gerenciamento
+            openEventModal(id);
+        }
+    }
+
+    if (pixOkBtn) {
+        pixOkBtn.addEventListener('click', () => {
+            const id = parseInt(btnContribute.dataset.eventId);
+            if(id) processDonationSimulated(id);
+            window.closePixModal();
+        });
+    }
+
+    if(closePixModalBtn) {
+        closePixModalBtn.addEventListener('click', window.closePixModal);
+    }
+
+    // ==========================================
+    // MODAL DETALHES/EDIÇÃO
     // ==========================================
     function openEventModal(id) {
         const allEvents = getEvents();
@@ -262,7 +333,14 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById('modalRaisedValue').innerText = `Arrecadado: R$ ${atual}`;
             document.getElementById('modalMetaValue').innerText = `Meta: R$ ${meta}`;
 
-            btnContribute.onclick = () => donateToEvent(id, 50.00); // Valor fixo
+            btnContribute.dataset.eventId = id; // Armazena o ID no botão de Contribuição
+            btnContribute.onclick = () => { 
+                // CORREÇÃO: Abre o modal Pix
+                pixModal.classList.remove('hidden');
+                pixModal.classList.add('active'); // Garante que o CSS de backdrop funcione
+                startPixTimer();
+                closeEditModal(); // Fecha o modal de detalhes/edição
+            };
 
         } else {
             // CONVITE
@@ -294,19 +372,6 @@ document.addEventListener("DOMContentLoaded", function() {
     // ==========================================
     // AÇÕES
     // ==========================================
-    function donateToEvent(id, amount) {
-        let allEvents = getEvents();
-        const idx = allEvents.findIndex(e => e.ID_Evento === id);
-        if (idx !== -1) {
-            const atual = parseFloat(allEvents[idx].Valor_Arrecadado || 0);
-            allEvents[idx].Valor_Arrecadado = atual + amount;
-            saveEvents(allEvents);
-            alert(`Doação de R$ ${amount} registrada!`);
-            closeEditModal();
-            loadAndRender();
-        }
-    }
-
     function rsvpEvent(id, status) {
         let allEvents = getEvents();
         const idx = allEvents.findIndex(e => e.ID_Evento === id);
@@ -398,7 +463,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Utils
     if(closeBtn) closeBtn.addEventListener('click', closeEditModal);
-    window.addEventListener('click', (e) => { if (e.target === editModal) closeEditModal(); });
+    
+    // Listener de clique para fechar modais ao clicar fora.
+    window.addEventListener('click', (e) => { 
+        if (e.target === editModal) closeEditModal(); 
+        if (e.target === pixModal) window.closePixModal();
+    });
 
     function monthName(dateStr) {
         if(!dateStr) return "";
