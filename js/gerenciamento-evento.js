@@ -231,15 +231,24 @@ document.addEventListener("DOMContentLoaded", function() {
             grid.appendChild(card);
         });
     }
+// ==========================================
+    // LÓGICA DO MODAL PIX E SUCESSO
+    // ==========================================
+    
+    // Elementos do Modal de Sucesso
+    const successModal = document.getElementById('successModal');
+    const btnCloseSuccess = document.getElementById('btnCloseSuccess');
 
-    // ==========================================
-    // LÓGICA DO MODAL PIX (COMUM)
-    // ==========================================
+    // Variável para simular o polling da API (verificação automática)
+    let pixCheckInterval = null; 
+
     window.closePixModal = function() {
         if(pixCountdown) clearInterval(pixCountdown);
+        if(pixCheckInterval) clearInterval(pixCheckInterval); // Para a verificação da API
+        
         if(pixModal) {
             pixModal.classList.add('hidden');
-            pixModal.classList.remove('active'); // Remove a classe active também
+            pixModal.classList.remove('active');
         }
         if(pixTimerDisplay) pixTimerDisplay.innerText = "10:00"; 
     };
@@ -248,11 +257,16 @@ document.addEventListener("DOMContentLoaded", function() {
         const pixCodeInput = document.getElementById('pixCode');
         pixCodeInput.select();
         document.execCommand('copy');
-        alert('Código PIX Copiado!');
+        // Pequeno feedback visual no botão em vez de alert intrusivo
+        const btnIcon = document.querySelector('.btn-icon-action i');
+        if(btnIcon) {
+            btnIcon.className = "fa-solid fa-check";
+            setTimeout(() => btnIcon.className = "fa-regular fa-copy", 2000);
+        }
     };
 
     function startPixTimer() {
-        let timeLeft = 600; // 10 minutos em segundos
+        let timeLeft = 600; // 10 minutos
         if(pixCountdown) clearInterval(pixCountdown);
 
         pixCountdown = setInterval(() => {
@@ -269,6 +283,32 @@ document.addEventListener("DOMContentLoaded", function() {
                 window.closePixModal();
             }
         }, 1000);
+
+        /* =========================================================================
+           INTEGRAÇÃO API PIX (VIA API BACKEND) - SIMULADA AQUI
+           Este código rodará em paralelo ao timer para detectar o pagamento sozinho.
+           =========================================================================
+           
+           pixCheckInterval = setInterval(async () => {
+               try {
+                   // Exemplo de chamada ao backend para ver se o status mudou para "PAID"
+                   const response = await fetch(`https://api.seusite.com/pix/status/${currentTxId}`);
+                   const data = await response.json();
+
+                   if (data.status === 'CONCLUIDO') {
+                       clearInterval(pixCheckInterval); // Para de checar
+                       
+                       // Pega o ID do evento que está sendo pago
+                       const idEvento = parseInt(btnContribute.dataset.eventId);
+                       
+                       // Chama a função de sucesso automaticamente
+                       processDonationSimulated(idEvento); 
+                   }
+               } catch (error) {
+                   console.error("Erro ao verificar status Pix", error);
+               }
+           }, 5000); // Verifica a cada 5 segundos
+        */
     }
     
     function processDonationSimulated(id) {
@@ -276,32 +316,49 @@ document.addEventListener("DOMContentLoaded", function() {
         const idx = allEvents.findIndex(e => e.ID_Evento === id);
 
         if (idx !== -1) {
-            const amount = 50.00; // Valor fixo de doação simulado
+            const amount = 50.00; // Valor fixo simulado
             const atual = parseFloat(allEvents[idx].Valor_Arrecadado || 0);
             allEvents[idx].Valor_Arrecadado = atual + amount;
             saveEvents(allEvents);
-            alert(`Pagamento PIX Simulatório efetuado. Doação de R$ ${amount} computada!`);
             
-            loadAndRender(); // Atualiza a lista na tela de gerenciamento
-            
-            // Reabre o modal de detalhes para ver o progresso (opcional, mas bom feedback)
-            // openEventModal(id); 
-            // OU apenas fecha tudo:
+            // 1. Fecha o modal do Pix
+            window.closePixModal();
+
+            // 2. Abre o Modal de Sucesso (NOVO)
+            if(successModal) {
+                successModal.classList.remove('hidden');
+            }
+
+            // 3. Atualiza a tela de fundo
+            loadAndRender(); 
+            // openEventModal(id); // Opcional: reabrir o modal de detalhes atualizado
         }
     }
 
+    // Botão "OK, Entendi" (Simula que o usuário pagou)
     if (pixOkBtn) {
         pixOkBtn.addEventListener('click', () => {
+            // Recupera o ID que foi salvo no botão 'Contribuir' ao abrir o modal
+            const btnContribute = document.getElementById('btnContribute'); // Garante pegar o botão certo
             const id = parseInt(btnContribute.dataset.eventId);
-            if(id) processDonationSimulated(id);
-            window.closePixModal();
+            
+            if(id) {
+                processDonationSimulated(id);
+            }
+        });
+    }
+
+    // Botão Fechar do Modal de Sucesso
+    if(btnCloseSuccess) {
+        btnCloseSuccess.addEventListener('click', () => {
+            successModal.classList.add('hidden');
         });
     }
 
     if(closePixModalBtn) {
         closePixModalBtn.addEventListener('click', window.closePixModal);
     }
-
+    
     // ==========================================
     // MODAL DETALHES/EDIÇÃO
     // ==========================================

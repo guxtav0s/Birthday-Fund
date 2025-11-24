@@ -177,6 +177,34 @@
       </div>
     </div>
 </div>
+
+<div id="successModal" class="modal-backdrop hidden">
+    <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
+        
+        <div style="margin-bottom: 20px;">
+            <i class="fa-solid fa-circle-check" style="font-size: 5rem; color: #4CAF50; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);"></i>
+        </div>
+
+        <h2 style="color: white; margin-bottom: 15px;">Pagamento Confirmado!</h2>
+        
+        <p style="color: #ccc; font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px;">
+            Muito obrigado pela doação,<br>
+            você fez alguém mais feliz hoje! <i class="fa-solid fa-heart" style="color: #ff6b6b;"></i>
+        </p>
+
+        <button id="btnCloseSuccess" class="btn-modal-action" style="background: #4CAF50; color: white; width: 100%;">
+            Concluir
+        </button>
+    </div>
+</div>
+
+<style>
+    @keyframes popIn {
+        0% { transform: scale(0); opacity: 0; }
+        80% { transform: scale(1.1); opacity: 1; }
+        100% { transform: scale(1); }
+    }
+</style>
   
  <footer>
     <p>Nossos Contatos</p>
