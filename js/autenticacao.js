@@ -1,255 +1,236 @@
 document.addEventListener("DOMContentLoaded", function() {
 
-    // ==========================================
-    // 1. SELETORES E NAVEGAÇÃO
-    // ==========================================
+    // --- CONFIGURAÇÃO DA API ---
+    const API_BASE_URL = "http://localhost:3000";
+
+    // --- ELEMENTOS DE NAVEGAÇÃO (TABS) ---
     const tabLogin = document.getElementById("tabLogin");
     const tabRegister = document.getElementById("tabRegister");
-    
-    const loginFormContainer = document.getElementById("loginFormContainer");
-    const registerFormContainer = document.getElementById("registerFormContainer");
-    
     const loginForm = document.getElementById("loginForm");
     const registerForm = document.getElementById("registerForm");
-    
     const switchToRegister = document.getElementById("switchToRegister");
     const switchToLogin = document.getElementById("switchToLogin");
+    const slider = document.querySelector(".form-slider");
 
-    // Inputs Login
-    const loginEmail = document.getElementById("login-email");
-    const loginSenha = document.getElementById("login-senha");
-    const loginBtn = document.getElementById("login-btn");
-    const loginError = document.getElementById("login-geral-error");
-    const rememberMe = document.getElementById("rememberMe");
-
-    // Inputs Registro
-    const regNome = document.getElementById("reg-nome");
-    const regEmail = document.getElementById("reg-email");
-    const regUsuario = document.getElementById("reg-usuario");
-    const regSenha = document.getElementById("reg-senha");
-    const regConfirmar = document.getElementById("reg-confirmar-senha");
-    const regBtn = document.getElementById("reg-btn");
-    const regGeralError = document.getElementById("reg-geral-error");
-    const regSenhaError = document.getElementById("reg-senha-error");
-    const regConfirmarError = document.getElementById("reg-confirmar-senha-error");
-
-    // --- Alternar Abas ---
-    function showLogin() {
-        tabLogin.classList.add("active");
-        tabRegister.classList.remove("active");
-        loginFormContainer.style.display = "block";
-        registerFormContainer.style.display = "none";
-        loginError.textContent = "";
-    }
-
-    function showRegister() {
-        tabRegister.classList.add("active");
+    // Função de alternância de abas
+    function showForm(formToShow, tabToActivate) {
         tabLogin.classList.remove("active");
-        registerFormContainer.style.display = "block";
-        loginFormContainer.style.display = "none";
-        regGeralError.textContent = "";
+        tabRegister.classList.remove("active");
+        
+        tabToActivate.classList.add("active");
+
+        if (formToShow === "register") {
+            slider.classList.add("show-register");
+        } else {
+            slider.classList.remove("show-register");
+        }
+        
+        // Limpar mensagens de erro ao trocar de aba
+        document.getElementById("login-geral-error").textContent = "";
+        document.getElementById("reg-geral-error").textContent = "";
     }
 
-    tabLogin.addEventListener("click", showLogin);
-    tabRegister.addEventListener("click", showRegister);
-    switchToRegister.addEventListener("click", showRegister);
-    switchToLogin.addEventListener("click", showLogin);
+    tabLogin.addEventListener("click", () => showForm("login", tabLogin));
+    tabRegister.addEventListener("click", () => showForm("register", tabRegister));
+    switchToRegister.addEventListener("click", () => showForm("register", tabRegister));
+    switchToLogin.addEventListener("click", () => showForm("login", tabLogin));
 
-    // --- Mostrar/Ocultar Senha ---
+    // --- FUNCIONALIDADE GLOBAL: MOSTRAR SENHA ---
+    // Seleciona todos os ícones de olho e adiciona o evento de clique
     document.querySelectorAll('.toggle-btn').forEach(icon => {
         icon.addEventListener('click', function() {
+            // O input está logo antes do ícone no HTML
             const input = this.previousElementSibling;
-            if (input.type === "password") {
-                input.type = "text";
-                this.classList.remove("fa-eye");
-                this.classList.add("fa-eye-slash");
-            } else {
-                input.type = "password";
-                this.classList.remove("fa-eye-slash");
-                this.classList.add("fa-eye");
+            
+            if (input && (input.type === "password" || input.type === "text")) {
+                if (input.type === "password") {
+                    input.type = "text";
+                    this.classList.remove("fa-eye");
+                    this.classList.add("fa-eye-slash");
+                } else {
+                    input.type = "password";
+                    this.classList.remove("fa-eye-slash");
+                    this.classList.add("fa-eye");
+                }
             }
         });
     });
 
-    // --- Lembrar de Mim ---
-    const savedEmail = localStorage.getItem("rememberedEmail");
-    if (savedEmail) {
-        loginEmail.value = savedEmail;
-        if (rememberMe) rememberMe.checked = true;
-    }
+    // ======================================================
+    // 1. LÓGICA DE CADASTRO (REGISTER)
+    // ======================================================
 
-    // ==========================================
-    // 2. VALIDAÇÕES DE SEGURANÇA
-    // ==========================================
-    
-    function validateEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
+    const regNome = document.getElementById("reg-nome");
+    const regEmail = document.getElementById("reg-email");
+    const regUsuario = document.getElementById("reg-usuario"); // Nota: API atual não usa este campo no JSON, mas mantemos validação
+    const regSenha = document.getElementById("reg-senha");
+    const regConfirmarSenha = document.getElementById("reg-confirmar-senha");
+    const regBtn = document.getElementById("reg-btn");
+    const regGeralError = document.getElementById("reg-geral-error");
 
-    function validatePasswordStrength(password) {
-        const re = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
-        return re.test(password);
-    }
+    // Elementos de erro (existem no HTML do registro)
+    const regSenhaError = document.getElementById("reg-senha-error");
+    const regConfirmarSenhaError = document.getElementById("reg-confirmar-senha-error");
 
+    // Validação simplificada para habilitar botão
     function checkRegisterValidity() {
-        let valid = true;
-        regGeralError.textContent = "";
-        regSenhaError.style.display = "none";
-        regConfirmarError.style.display = "none";
+        const nomeOk = regNome.value.trim().length >= 3;
+        const emailOk = /\S+@\S+\.\S+/.test(regEmail.value);
+        const senhaOk = regSenha.value.length >= 6; // Ajustado para ser menos restritivo inicialmente ou siga regra forte
+        const confirmOk = regSenha.value === regConfirmarSenha.value && senhaOk;
 
-        if (!regNome.value || !regEmail.value || !regUsuario.value || !regSenha.value || !regConfirmar.value) {
-            valid = false;
-        } else if (!validateEmail(regEmail.value)) {
-            valid = false;
-        } else if (!validatePasswordStrength(regSenha.value)) {
-            regSenhaError.textContent = "A senha deve ter 8+ caracteres, letras e números.";
-            regSenhaError.style.display = "block";
-            valid = false;
-        } else if (regSenha.value !== regConfirmar.value) {
-            regConfirmarError.textContent = "As senhas não coincidem.";
-            regConfirmarError.style.display = "block";
-            valid = false;
+        // Feedback visual de erro de senha
+        if (regSenha.value.length > 0 && !senhaOk) {
+             if(regSenhaError) {
+                 regSenhaError.textContent = "Senha muito curta.";
+                 regSenhaError.style.display = "block";
+             }
+        } else {
+             if(regSenhaError) regSenhaError.style.display = "none";
         }
 
-        regBtn.disabled = !valid;
+        // Feedback visual de confirmação
+        if (regConfirmarSenha.value.length > 0 && !confirmOk) {
+            if(regConfirmarSenhaError) {
+                regConfirmarSenhaError.textContent = "Senhas não conferem.";
+                regConfirmarSenhaError.style.display = "block";
+            }
+        } else {
+            if(regConfirmarSenhaError) regConfirmarSenhaError.style.display = "none";
+        }
+
+        if (nomeOk && emailOk && senhaOk && confirmOk) {
+            regBtn.disabled = false;
+        } else {
+            regBtn.disabled = true;
+        }
     }
 
-    [regNome, regEmail, regUsuario, regSenha, regConfirmar].forEach(input => {
+    [regNome, regEmail, regUsuario, regSenha, regConfirmarSenha].forEach(input => {
         input.addEventListener("input", checkRegisterValidity);
     });
 
-    // ==========================================
-    // 3. REGISTRO
-    // ==========================================
-    registerForm.addEventListener("submit", function(e) {
-        e.preventDefault();
+    // --- INTEGRACAO API: CADASTRO ---
+    registerForm.addEventListener("submit", async function(event) {
+        event.preventDefault();
+        regGeralError.textContent = "";
+        
+        // Preparar dados conforme Postman
+        const dadosCadastro = {
+            Nome_Usuario: regNome.value,
+            Email_Usuario: regEmail.value,
+            Senha_Usuario: regSenha.value
+        };
+
+        const originalBtnText = regBtn.textContent;
         regBtn.disabled = true;
-        regGeralError.textContent = "Processando...";
+        regBtn.textContent = "Cadastrando...";
 
-        setTimeout(() => {
-            let usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dadosCadastro)
+            });
 
-            if (usersDB.some(u => u.Email === regEmail.value)) {
-                regGeralError.textContent = "Este e-mail já está em uso.";
-                regGeralError.style.color = "#D32F2F";
-                regBtn.disabled = false;
-                return;
-            }
-            if (usersDB.some(u => u.Usuario_Handle === regUsuario.value)) {
-                regGeralError.textContent = "Este usuário já existe.";
-                regGeralError.style.color = "#D32F2F";
-                regBtn.disabled = false;
-                return;
-            }
+            // Tenta ler JSON, se falhar (ex: erro 500 html), trata vazio
+            const data = await response.json().catch(() => null);
 
-            const newUser = {
-                ID_Usuario: Date.now(),
-                Nome: regNome.value,
-                Email: regEmail.value,
-                Usuario_Handle: regUsuario.value,
-                Senha: regSenha.value,
-                Tipo_Usuario: "Comum",
-                Data_Criacao: new Date().toISOString(),
-                Dados_Bancarios: {}
-            };
-
-            usersDB.push(newUser);
-            localStorage.setItem("usersDB", JSON.stringify(usersDB));
-
-            regGeralError.textContent = "Conta criada! Faça login.";
-            regGeralError.style.color = "#28a745";
-            
-            setTimeout(() => {
+            if (response.ok) {
+                alert("Cadastro realizado com sucesso! Faça login.");
+                showForm("login", tabLogin);
                 registerForm.reset();
-                showLogin();
-                regBtn.disabled = true;
-                regGeralError.textContent = "";
-            }, 1500);
-
-        }, 800);
+                checkRegisterValidity(); // Reseta estado do botão
+            } else {
+                // Tratamento de erros vindos da API
+                const msg = data && data.message ? data.message : "Erro ao cadastrar.";
+                regGeralError.textContent = msg;
+            }
+        } catch (error) {
+            console.error("Erro Fetch:", error);
+            regGeralError.textContent = "Servidor indisponível. Tente mais tarde.";
+        } finally {
+            regBtn.disabled = false;
+            regBtn.textContent = originalBtnText;
+        }
     });
 
-    // ==========================================
-    // 4. LOGIN (CORRIGIDO: AUTO-SEED ADMIN)
-    // ==========================================
-    
+
+    // ======================================================
+    // 2. LÓGICA DE LOGIN (LOGIN)
+    // ======================================================
+
+    const loginEmail = document.getElementById("login-email");
+    const loginSenha = document.getElementById("login-senha");
+    const loginBtn = document.getElementById("login-btn");
+    const loginGeralError = document.getElementById("login-geral-error");
+
+    // Validação simples do Login
     function checkLoginValidity() {
-        loginBtn.disabled = !(loginEmail.value && loginSenha.value);
+        if (loginEmail.value.trim() !== "" && loginSenha.value.trim() !== "") {
+            loginBtn.disabled = false;
+        } else {
+            loginBtn.disabled = true;
+        }
     }
+
     loginEmail.addEventListener("input", checkLoginValidity);
     loginSenha.addEventListener("input", checkLoginValidity);
 
-    loginForm.addEventListener("submit", function(e) {
-        e.preventDefault();
+    // --- INTEGRACAO API: LOGIN ---
+    loginForm.addEventListener("submit", async function(event) {
+        event.preventDefault();
+        loginGeralError.textContent = "";
+        loginGeralError.style.color = ""; // Reseta cor de erro
+
+        const payload = {
+            Email_Usuario: loginEmail.value,
+            Senha_Usuario: loginSenha.value
+        };
+
+        const originalBtnText = loginBtn.textContent;
         loginBtn.disabled = true;
-        loginError.textContent = "Verificando...";
+        loginBtn.textContent = "Entrando...";
 
-        const emailVal = loginEmail.value.trim(); // Remove espaços extras
-        const passVal = loginSenha.value;
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
 
-        setTimeout(() => {
-            // 1. Carrega Banco
-            let usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
+            const data = await response.json().catch(() => null);
 
-            // --- CORREÇÃO CRÍTICA: SEED ADMIN ---
-            // Se o usuário está tentando logar como Admin e o Admin não existe no banco,
-            // nós criamos o Admin AGORA e salvamos no banco.
-            if (emailVal === "admin@admin.com" && passVal === "admin") {
-                const adminExists = usersDB.find(u => u.Email === "admin@admin.com");
+            if (response.ok && data && data.token) {
+                // SUCESSO
+                loginGeralError.style.color = "#2ecc71"; // Verde sucesso
+                loginGeralError.textContent = "Login com sucesso! Redirecionando...";
                 
-                if (!adminExists) {
-                    console.log("Admin não encontrado. Criando automaticamente...");
-                    const newAdmin = {
-                        ID_Usuario: 1,
-                        Nome: "Administrador",
-                        Email: "admin@admin.com",
-                        Usuario_Handle: "admin",
-                        Senha: "admin",
-                        Tipo_Usuario: "Admin",
-                        Data_Criacao: new Date().toISOString(),
-                        Dados_Bancarios: {}
-                    };
-                    usersDB.push(newAdmin);
-                    localStorage.setItem("usersDB", JSON.stringify(usersDB)); // Salva no Storage
+                // SALVAR NO LOCALSTORAGE (Essencial para as próximas etapas)
+                localStorage.setItem("token", data.token);
+                // Opcional: Salvar dados do usuário se a API retornar
+                if (data.usuario) {
+                    localStorage.setItem("userData", JSON.stringify(data.usuario));
                 }
-            }
-            // ------------------------------------
 
-            // 2. Busca no Banco (agora o admin com certeza existe se foi digitado corretamente)
-            const user = usersDB.find(u => u.Email === emailVal && u.Senha === passVal);
+                setTimeout(() => {
+                    window.location.href = "index.html"; // Redireciona para Home
+                }, 1500);
 
-            if (user) {
-                finalizeLogin(user);
             } else {
-                loginError.textContent = "E-mail ou senha incorretos.";
-                loginError.style.color = "#D32F2F";
+                // ERRO
+                const msg = data && data.message ? data.message : "E-mail ou senha inválidos.";
+                loginGeralError.textContent = msg;
+                loginBtn.textContent = originalBtnText;
                 loginBtn.disabled = false;
             }
-        }, 800);
+
+        } catch (error) {
+            console.error("Erro Login:", error);
+            loginGeralError.textContent = "Erro de conexão com o servidor.";
+            loginBtn.textContent = originalBtnText;
+            loginBtn.disabled = false;
+        }
     });
 
-    function finalizeLogin(user) {
-        if (rememberMe.checked) {
-            localStorage.setItem("rememberedEmail", user.Email);
-        } else {
-            localStorage.removeItem("rememberedEmail");
-        }
-
-        sessionStorage.setItem("currentUserEmail", user.Email);
-        sessionStorage.setItem("currentUserName", user.Nome);
-        sessionStorage.setItem("currentUserHandle", user.Usuario_Handle);
-        sessionStorage.setItem("currentUserRole", user.Tipo_Usuario);
-
-        loginError.textContent = "Sucesso! Redirecionando...";
-        loginError.style.color = "#28a745";
-
-        setTimeout(() => {
-            if (user.Tipo_Usuario === 'Admin') {
-                window.location.href = "gerenciamento-usuarios.html";
-            } else {
-                window.location.href = "index.html";
-            }
-        }, 1000);
-    }
 });
