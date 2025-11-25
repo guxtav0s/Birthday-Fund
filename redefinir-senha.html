@@ -31,16 +31,24 @@
         <div class="auth-box">
             
             <div class="header-text">
-                <h1>Nova Senha</h1>
-                <p>Crie uma senha forte para sua conta.</p>
+                <h2>Criar nova senha</h2>
+                <p>Preencha os dados abaixo para recuperar seu acesso.</p>
             </div>
 
-            <form id="formRedefinir" novalidate>
+            <form id="formRedefinir">
                 
+                <div class="input-group">
+                    <label for="token">Código de Verificação</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="token" placeholder="Cole o código recebido aqui" required>
+                        <i class="fa-solid fa-key" style="color: #888;"></i>
+                    </div>
+                </div>
+
                 <div class="input-group">
                     <label for="senha">Nova Senha</label>
                     <div class="input-wrapper">
-                        <input type="password" id="senha" placeholder="Mínimo 8 caracteres" required>
+                        <input type="password" id="senha" placeholder="Mínimo 6 caracteres" required>
                         <i class="fa-solid fa-eye toggle-btn"></i>
                     </div>
                     <span id="senhaError" class="error-message"></span>
