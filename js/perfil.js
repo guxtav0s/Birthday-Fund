@@ -1,5 +1,4 @@
-// --- 1. FUNÇÃO DE ABAS (GLOBAL) ---
-// Definida fora do DOMContentLoaded para garantir que exista sempre
+// Mantida fora do DOMContentLoaded para garantir que o HTML encontre a função
 window.switchTab = function(tabName, btnElement) {
     // Remove active de todos os botões
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -27,65 +26,60 @@ document.addEventListener("DOMContentLoaded", function() {
     const API_BASE_URL = "http://localhost:3000";
     const token = localStorage.getItem("token");
 
-    // --- ELEMENTOS UI ---
+    // --- VERIFICAÇÃO DE SESSÃO ---
+    if (!token) {
+        window.location.href = "autenticacao.html";
+        return;
+    }
+
+    // --- ELEMENTOS UI (Perfil Pessoal) ---
     const profileUserName = document.getElementById("profileUserName");
     const profileUserHandle = document.getElementById("profileUserHandle");
     const btnSidebarLogout = document.getElementById("btnSidebarLogout");
     
+    const formDados = document.getElementById("perfilForm");
     const inputNome = document.getElementById("nome");
     const inputEmail = document.getElementById("email");
-    const formDados = document.getElementById("perfilForm");
     const msgDados = document.getElementById("msgDados"); 
 
-    // Senha (Visual)
+    // Senhas
     const checkMostrarSenha = document.getElementById("mostrar-senha");
     const inputSenhaAtual = document.getElementById("senhaAtual");
     const inputNovaSenha = document.getElementById("novaSenha");
     const inputConfirmarSenha = document.getElementById("confirmarSenha");
 
+    // --- ELEMENTOS UI (Dados Bancários) ---
+    const formBanco = document.getElementById("bancoForm");
+    const inputTipoPix = document.getElementById("tipoPix");
+    const inputChavePix = document.getElementById("chavePix");
+    const inputTitularPix = document.getElementById("titularPix");
+    const msgBanco = document.getElementById("msgBanco");
+
     // Inicializa a aba padrão (Dados)
     const defaultTab = document.querySelector('.nav-item.active') || document.querySelector('.nav-item');
     if(defaultTab) window.switchTab('dados', defaultTab);
 
-    // --- 2. RECUPERAÇÃO DO ID DO USUÁRIO ---
+    // --- RECUPERAÇÃO DO ID DO USUÁRIO ---
     let userId = null;
-    
-    if (token) {
-        try {
-            const storedUser = localStorage.getItem("user");
-            console.log("Conteúdo do localStorage 'user':", storedUser); // OLHE NO CONSOLE
-
-            if (storedUser) {
-                const parsedUser = JSON.parse(storedUser);
-                // Tenta encontrar o ID com diferentes nomes possíveis
-                userId = parsedUser.ID_Usuario || parsedUser.id || parsedUser.userId;
-                
-                if(!userId) {
-                    console.warn("Aviso: Objeto usuário existe, mas sem campo de ID compatível.");
-                }
-            }
-        } catch (error) {
-            console.error("Erro ao ler dados locais:", error);
+    try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            userId = parsedUser.ID_Usuario || parsedUser.id || parsedUser.userId;
         }
-    } else {
-        alert("Sessão expirada. Faça login novamente.");
-        window.location.href = "autenticacao.html";
-        return; 
+    } catch (error) {
+        console.error("Erro ao ler dados locais:", error);
     }
 
-    // --- 3. BUSCAR DADOS (Somente se tiver ID) ---
     if (userId) {
         carregarDados(userId);
     } else {
-        console.error("ID não encontrado. Impossível buscar dados.");
-        if(profileUserName) profileUserName.textContent = "Erro de Sessão";
-        if(profileUserHandle) profileUserHandle.textContent = "Faça login novamente";
+        console.error("ID não encontrado.");
     }
 
+    // --- 2. BUSCAR DADOS (GET) ---
     async function carregarDados(id) {
         try {
-            console.log(`Buscando dados na API: ${API_BASE_URL}/usuario/${id}`);
-            
             const response = await fetch(`${API_BASE_URL}/usuario/${id}`, {
                 method: "GET",
                 headers: {
@@ -96,16 +90,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (response.ok) {
                 const userData = await response.json();
-                console.log("Dados recebidos da API:", userData);
-
+                
                 // Preenche a tela
                 if(profileUserName) profileUserName.textContent = userData.Nome_Usuario || "Usuário";
                 if(profileUserHandle) profileUserHandle.textContent = userData.Email_Usuario || "";
+                
                 if(inputNome) inputNome.value = userData.Nome_Usuario || "";
                 if(inputEmail) inputEmail.value = userData.Email_Usuario || "";
 
-                // Atualiza o localStorage para manter sincronizado (opcional)
-                // localStorage.setItem("user", JSON.stringify(userData));
+                // Se houver dados bancários salvos no usuário, preencher aqui também
+                // (Depende se o backend retorna isso no GET /usuario/:id)
 
             } else {
                 console.error("Erro na resposta da API:", response.status);
@@ -115,30 +109,51 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // --- 4. ATUALIZAR DADOS (PUT) ---
+    // --- 3. ATUALIZAR DADOS PESSOAIS (USANDO A NOVA ROTA /auth/update-profile) ---
     if (formDados) {
         formDados.addEventListener("submit", async function(e) {
             e.preventDefault();
-            
-            if(!userId) {
-                alert("Erro: ID de usuário não identificado. Faça login novamente.");
-                return;
+            msgDados.textContent = "";
+
+            // Inputs de senha
+            const senhaAtual = inputSenhaAtual.value.trim();
+            const novaSenha = inputNovaSenha.value.trim();
+            const confirmar = inputConfirmarSenha.value.trim();
+
+            // Validação de Senha no Frontend
+            if (novaSenha || confirmar) {
+                if (!senhaAtual) {
+                    msgDados.style.color = "red";
+                    msgDados.textContent = "Para alterar a senha, informe a senha ATUAL.";
+                    return;
+                }
+                if (novaSenha !== confirmar) {
+                    msgDados.style.color = "red";
+                    msgDados.textContent = "A nova senha e a confirmação não coincidem.";
+                    return;
+                }
             }
 
             const btn = formDados.querySelector("button[type='submit']");
             const oldText = btn.textContent;
             btn.textContent = "Salvando...";
             btn.disabled = true;
-            msgDados.textContent = "";
 
             try {
+                // Monta o payload exatamente como sua rota espera
                 const payload = {
-                    Nome_Usuario: inputNome.value,
-                    Email_Usuario: inputEmail.value
+                    Nome_Usuario: inputNome.value
                 };
 
-                const response = await fetch(`${API_BASE_URL}/usuario/${userId}`, {
-                    method: "PUT", // Se der 404, seu backend pode não ter essa rota ainda
+                // Só envia senha se tiver preenchido
+                if (senhaAtual && novaSenha) {
+                    payload.senhaAtual = senhaAtual;
+                    payload.novaSenha = novaSenha;
+                }
+
+                // CHAMA A ROTA ESPECÍFICA DO AUTH.JS
+                const response = await fetch(`${API_BASE_URL}/auth/update-profile`, {
+                    method: "PUT",
                     headers: {
                         "Authorization": `Bearer ${token}`,
                         "Content-Type": "application/json"
@@ -146,19 +161,31 @@ document.addEventListener("DOMContentLoaded", function() {
                     body: JSON.stringify(payload)
                 });
 
+                const data = await response.json();
+
                 if (response.ok) {
-                    const updatedUser = await response.json();
                     msgDados.style.color = "green";
-                    msgDados.textContent = "Dados atualizados!";
+                    msgDados.textContent = "Perfil atualizado com sucesso!";
                     
-                    // Atualiza visual
-                    if(profileUserName) profileUserName.textContent = updatedUser.Nome_Usuario;
-                    // Atualiza cache
-                    localStorage.setItem("user", JSON.stringify(updatedUser));
+                    // Limpa campos de senha
+                    inputSenhaAtual.value = "";
+                    inputNovaSenha.value = "";
+                    inputConfirmarSenha.value = "";
+
+                    // Atualiza visual e localStorage
+                    if(data.usuario) {
+                        if(profileUserName) profileUserName.textContent = data.usuario.Nome_Usuario;
+                        
+                        // Atualiza o objeto user no localStorage mantendo o ID
+                        const currentUser = JSON.parse(localStorage.getItem("user")) || {};
+                        const newUser = { ...currentUser, ...data.usuario };
+                        localStorage.setItem("user", JSON.stringify(newUser));
+                    }
                 } else {
                     msgDados.style.color = "red";
-                    msgDados.textContent = "Erro ao atualizar.";
+                    msgDados.textContent = data.error || "Erro ao atualizar.";
                 }
+
             } catch (error) {
                 console.error(error);
                 msgDados.style.color = "red";
@@ -170,9 +197,37 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // --- 5. OUTRAS FUNCIONALIDADES ---
-    
-    // Mostrar/Ocultar Senha
+    // --- 4. SALVAR DADOS BANCÁRIOS (Preservado) ---
+    if (formBanco) {
+        formBanco.addEventListener("submit", async function(e) {
+            e.preventDefault();
+            msgBanco.textContent = "";
+
+            const btn = formBanco.querySelector("button[type='submit']");
+            const oldText = btn.textContent;
+            btn.textContent = "Salvando...";
+            btn.disabled = true;
+
+            try {
+                // Aqui você implementará a lógica de salvar banco futuramente
+                // Por enquanto simulamos um delay
+                await new Promise(r => setTimeout(r, 1000));
+                
+                msgBanco.style.color = "orange";
+                msgBanco.textContent = "Integração bancária em breve!";
+                
+            } catch (error) {
+                console.error(error);
+                msgBanco.style.color = "red";
+                msgBanco.textContent = "Erro ao salvar.";
+            } finally {
+                btn.textContent = oldText;
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // --- 5. VISUAL: MOSTRAR SENHA ---
     if(checkMostrarSenha) {
         checkMostrarSenha.addEventListener("change", function() {
             const type = this.checked ? "text" : "password";
@@ -182,7 +237,7 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // Logout
+    // --- 6. LOGOUT ---
     if(btnSidebarLogout) {
         btnSidebarLogout.addEventListener('click', (e) => {
             e.preventDefault();
