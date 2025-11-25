@@ -24,8 +24,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Atualiza título de boas vindas
     if(welcomeTitle) {
-        const storedName = localStorage.getItem("userEmail") || "Visitante";
-        const firstName = storedName.split('@')[0];
+        const storedUser = localStorage.getItem("user");
+        const userName = JSON.parse(storedUser).userName;
+        const firstName = userName.split(' ')[0];
         welcomeTitle.innerHTML = `Olá, <span style="color:#FFD700">${firstName}</span>!`;
     }
 

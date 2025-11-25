@@ -209,8 +209,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 // SALVAR NO LOCALSTORAGE (Essencial para as próximas etapas)
                 localStorage.setItem("token", data.token);
                 // Opcional: Salvar dados do usuário se a API retornar
-                if (data.usuario) {
-                    localStorage.setItem("userData", JSON.stringify(data.usuario));
+                if (data.user) {
+                    localStorage.setItem("user", JSON.stringify(data.user));
                 }
 
                 setTimeout(() => {

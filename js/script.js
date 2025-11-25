@@ -20,7 +20,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Tenta pegar o nome salvo (se houver) ou usa o email
     // Nota: Idealmente a API retornaria o nome no login. Por enquanto improvisamos.
-    let userName = localStorage.getItem("userName") || localStorage.getItem("userEmail") || "Usuário";
+    // let userName = localStorage.getItem("userName") || localStorage.getItem("userEmail") || "Usuário";
+    const storedUser = localStorage.getItem("user");
+    let userName = JSON.parse(storedUser).userName;
 
     if (token) {
         // --- USUÁRIO LOGADO ---
