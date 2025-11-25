@@ -71,6 +71,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (response.ok) {
                 const user = await response.json();
+                if (user) {
+                    localStorage.setItem("user", JSON.stringify(user));
+                }
                 
                 // Popula UI Lateral
                 if(profileUserName) profileUserName.textContent = user.Nome_Usuario || user.Nome || "Usuário";
@@ -113,9 +116,9 @@ document.addEventListener("DOMContentLoaded", function() {
             const userId = getUserIdFromToken();
             const payload = {
                 Nome_Usuario: inputNome.value,
-                Email_Usuario: inputEmail.value,
                 // Envia senha nova apenas se o usuário digitou
-                ...(inputNovaSenha.value ? { Senha_Usuario: inputNovaSenha.value } : {})
+                ...(inputSenhaAtual.value ? { senhaAtual: inputSenhaAtual.value } : {}),
+                ...(inputNovaSenha.value ? { novaSenha: inputNovaSenha.value } : {})
             };
 
             const btn = formDados.querySelector("button");
@@ -126,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function() {
             try {
                 // ATENÇÃO: Esta rota (PUT) não estava no seu Postman, mas é o padrão.
                 // Se der 404, é porque o backend ainda não criou a rota.
-                const response = await fetch(`${API_BASE_URL}/usuario/${userId}`, {
+                const response = await fetch(`${API_BASE_URL}/auth/update-profile`, {
                     method: "PUT", // ou PATCH
                     headers: {
                         "Content-Type": "application/json",
@@ -141,7 +144,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     localStorage.setItem("userName", inputNome.value);
                     if(inputEmail.value) localStorage.setItem("userEmail", inputEmail.value);
                 } else {
-                    showMessage(msgDados, "Erro ao atualizar (Backend pode não suportar edit).", "red");
+                    let msg = await response.json();
+                    showMessage(msgDados, msg.error, "red");
                 }
             } catch (error) {
                 showMessage(msgDados, "Erro de conexão.", "red");
