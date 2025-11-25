@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 checkRegisterValidity(); // Reseta estado do botão
             } else {
                 // Tratamento de erros vindos da API
-                const msg = data && data.message ? data.message : "Erro ao cadastrar.";
+                const msg = data && data.error ? data.error : "Erro ao cadastrar.";
                 regGeralError.textContent = msg;
             }
         } catch (error) {
