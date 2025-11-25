@@ -1,8 +1,12 @@
 document.addEventListener("DOMContentLoaded", function() {
 
+    // --- CONFIGURAÇÃO API ---
+    const API_BASE_URL = "http://localhost:3000";
+    const token = localStorage.getItem("token");
+
     // --- VERIFICAÇÃO DE SESSÃO ---
-    const sessionEmail = sessionStorage.getItem("currentUserEmail");
-    if (!sessionEmail) {
+    if (!token) {
+        alert("Você precisa estar logado.");
         window.location.href = "autenticacao.html";
         return;
     }
@@ -21,195 +25,201 @@ document.addEventListener("DOMContentLoaded", function() {
     const inputNovaSenha = document.getElementById("novaSenha");
     const inputConfirmarSenha = document.getElementById("confirmarSenha");
     const checkMostrarSenha = document.getElementById("mostrar-senha");
-    const msgDados = document.getElementById("msgDados"); // Span de feedback
+    const msgDados = document.getElementById("msgDados"); 
 
     // Formulário Banco
     const formBanco = document.getElementById("bancoForm");
     const inputTipoPix = document.getElementById("tipoPix");
     const inputChavePix = document.getElementById("chavePix");
     const inputTitularPix = document.getElementById("titularPix");
-    const msgBanco = document.getElementById("msgBanco"); // Span de feedback
-
-    // --- INICIALIZAÇÃO ---
-    let usersDB = [];
-    let currentUser = null;
-    let currentUserIndex = -1;
-
-    init();
-
-    function init() {
-        // 1. Carrega Banco
-        usersDB = JSON.parse(localStorage.getItem("usersDB")) || [];
-
-        // 2. Busca Usuário
-        currentUserIndex = usersDB.findIndex(u => u.Email === sessionEmail);
-
-        // 3. CORREÇÃO: Se for Admin e não estiver no banco, CRIA ELE AGORA
-        if (currentUserIndex === -1 && sessionEmail === 'admin@admin.com') {
-            const newAdmin = {
-                ID_Usuario: 1,
-                Nome: "Administrador",
-                Email: "admin@admin.com",
-                Usuario_Handle: "admin",
-                Senha: "admin",
-                Tipo_Usuario: "Admin",
-                Data_Criacao: new Date().toISOString(),
-                Dados_Bancarios: {}
-            };
-            usersDB.push(newAdmin);
-            localStorage.setItem("usersDB", JSON.stringify(usersDB));
-            currentUserIndex = usersDB.length - 1; // Pega o índice do novo
-        }
-
-        // 4. Define o objeto de referência
-        if (currentUserIndex !== -1) {
-            currentUser = usersDB[currentUserIndex];
-            preencherCampos();
-        } else {
-            alert("Erro: Usuário não encontrado na base de dados.");
-            sessionStorage.clear();
-            window.location.href = "autenticacao.html";
-        }
-    }
-
-    function preencherCampos() {
-        // Header
-        if(profileUserName) profileUserName.textContent = currentUser.Nome;
-        if(profileUserHandle) profileUserHandle.textContent = `@${currentUser.Usuario_Handle}`;
-        
-        // Dados Pessoais
-        if(inputNome) inputNome.value = currentUser.Nome;
-        if(inputUsuario) inputUsuario.value = currentUser.Usuario_Handle || "";
-        if(inputEmail) inputEmail.value = currentUser.Email;
-
-        // Dados Bancários (Se existirem)
-        if (currentUser.Dados_Bancarios) {
-            if(inputTipoPix) inputTipoPix.value = currentUser.Dados_Bancarios.Tipo || 'cpf';
-            if(inputChavePix) inputChavePix.value = currentUser.Dados_Bancarios.Chave || '';
-            if(inputTitularPix) inputTitularPix.value = currentUser.Dados_Bancarios.Titular || '';
-        }
-    }
-
-    // --- SALVAR DADOS PESSOAIS ---
-    if (formDados) {
-        formDados.addEventListener("submit", function(e) {
-            e.preventDefault();
-            let alteracoes = false;
-            showMessage(msgDados, "", ""); // Limpa msg
-
-            // 1. Atualiza Nome/Handle
-            if (inputNome.value !== currentUser.Nome) { 
-                currentUser.Nome = inputNome.value; 
-                alteracoes = true; 
-            }
-            if (inputUsuario.value !== currentUser.Usuario_Handle) { 
-                currentUser.Usuario_Handle = inputUsuario.value; 
-                alteracoes = true; 
-            }
-
-            // 2. Atualiza Senha (com validações)
-            if (inputNovaSenha.value) {
-                if (inputSenhaAtual.value !== currentUser.Senha) {
-                    showMessage(msgDados, "Senha atual incorreta.", "#ff4d4d");
-                    return;
-                }
-                if (inputNovaSenha.value !== inputConfirmarSenha.value) {
-                    showMessage(msgDados, "As novas senhas não coincidem.", "#ff4d4d");
-                    return;
-                }
-                currentUser.Senha = inputNovaSenha.value;
-                alteracoes = true;
-            }
-
-            // 3. Persiste
-            if (alteracoes) {
-                saveToDB();
-                
-                // Atualiza Sessão
-                sessionStorage.setItem("currentUserName", currentUser.Nome);
-                sessionStorage.setItem("currentUserHandle", currentUser.Usuario_Handle);
-                
-                // Atualiza UI Imediata
-                profileUserName.textContent = currentUser.Nome;
-                profileUserHandle.textContent = `@${currentUser.Usuario_Handle}`;
-                
-                // Limpa campos de senha
-                inputSenhaAtual.value = "";
-                inputNovaSenha.value = "";
-                inputConfirmarSenha.value = "";
-
-                showMessage(msgDados, "Perfil atualizado com sucesso!", "#4CAF50");
-            } else {
-                showMessage(msgDados, "Nenhuma alteração detectada.", "#FFD700");
-            }
-        });
-    }
-
-    // --- SALVAR DADOS BANCÁRIOS ---
-    if (formBanco) {
-        formBanco.addEventListener("submit", function(e) {
-            e.preventDefault();
-            
-            // Atualiza objeto na memória
-            currentUser.Dados_Bancarios = {
-                Tipo: inputTipoPix.value,
-                Chave: inputChavePix.value,
-                Titular: inputTitularPix.value
-            };
-
-            // Persiste
-            saveToDB();
-            
-            showMessage(msgBanco, "Dados bancários salvos com sucesso!", "#4CAF50");
-        });
-    }
+    const msgBanco = document.getElementById("msgBanco");
 
     // --- FUNÇÕES AUXILIARES ---
-    function saveToDB() {
-        // Como 'currentUser' é uma referência direta ao objeto dentro de 'usersDB',
-        // basta salvar o array 'usersDB' de volta no localStorage.
-        localStorage.setItem("usersDB", JSON.stringify(usersDB));
+    function getUserIdFromToken() {
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            const decoded = JSON.parse(jsonPayload);
+            return decoded.id || decoded.ID_Usuario || 1; 
+        } catch (e) {
+            return 1;
+        }
     }
 
     function showMessage(element, text, color) {
         if(element) {
             element.textContent = text;
             element.style.color = color;
-            // Limpa mensagem após 3s
-            setTimeout(() => { element.textContent = ""; }, 3000);
+            setTimeout(() => { element.textContent = ""; }, 4000);
         } else {
-            // Fallback se o span não existir
-            if(text) alert(text);
+            alert(text);
         }
     }
 
-    // Toggle Senha
-    if(checkMostrarSenha) {
-        checkMostrarSenha.addEventListener("change", function() {
-            const type = this.checked ? "text" : "password";
-            inputSenhaAtual.type = type;
-            inputNovaSenha.type = type;
-            inputConfirmarSenha.type = type;
+    // --- 1. CARREGAR DADOS (GET) ---
+    async function loadProfile() {
+        const userId = getUserIdFromToken();
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/usuario/${userId}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const user = await response.json();
+                
+                // Popula UI Lateral
+                if(profileUserName) profileUserName.textContent = user.Nome_Usuario || user.Nome || "Usuário";
+                if(profileUserHandle) profileUserHandle.textContent = user.Email_Usuario || user.Email;
+
+                // Popula Formulário Dados
+                if(inputNome) inputNome.value = user.Nome_Usuario || user.Nome || "";
+                if(inputEmail) inputEmail.value = user.Email_Usuario || user.Email || "";
+                
+                // Se a API retornar esses campos no futuro, basta mapear aqui:
+                if(inputUsuario && user.Nickname) inputUsuario.value = user.Nickname;
+                
+                if(inputChavePix && user.Chave_Pix) inputChavePix.value = user.Chave_Pix;
+                if(inputTitularPix && user.Titular_Pix) inputTitularPix.value = user.Titular_Pix;
+                if(inputTipoPix && user.Tipo_Pix) inputTipoPix.value = user.Tipo_Pix;
+
+            } else {
+                console.error("Erro ao carregar perfil:", response.status);
+            }
+        } catch (error) {
+            console.error("Erro de conexão:", error);
+        }
+    }
+
+    // Inicializa
+    loadProfile();
+
+
+    // --- 2. ATUALIZAR DADOS (PUT - Simulação/Preparação) ---
+    if(formDados) {
+        formDados.addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            // Validação simples de senha
+            if (inputNovaSenha.value && inputNovaSenha.value !== inputConfirmarSenha.value) {
+                showMessage(msgDados, "As novas senhas não coincidem.", "red");
+                return;
+            }
+
+            const userId = getUserIdFromToken();
+            const payload = {
+                Nome_Usuario: inputNome.value,
+                Email_Usuario: inputEmail.value,
+                // Envia senha nova apenas se o usuário digitou
+                ...(inputNovaSenha.value ? { Senha_Usuario: inputNovaSenha.value } : {})
+            };
+
+            const btn = formDados.querySelector("button");
+            const oldText = btn.textContent;
+            btn.textContent = "Salvando...";
+            btn.disabled = true;
+
+            try {
+                // ATENÇÃO: Esta rota (PUT) não estava no seu Postman, mas é o padrão.
+                // Se der 404, é porque o backend ainda não criou a rota.
+                const response = await fetch(`${API_BASE_URL}/usuario/${userId}`, {
+                    method: "PUT", // ou PATCH
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    showMessage(msgDados, "Dados atualizados com sucesso!", "#2ecc71");
+                    // Atualiza nome no localStorage para refletir na navbar sem refresh
+                    localStorage.setItem("userName", inputNome.value);
+                    if(inputEmail.value) localStorage.setItem("userEmail", inputEmail.value);
+                } else {
+                    showMessage(msgDados, "Erro ao atualizar (Backend pode não suportar edit).", "red");
+                }
+            } catch (error) {
+                showMessage(msgDados, "Erro de conexão.", "red");
+            } finally {
+                btn.textContent = oldText;
+                btn.disabled = false;
+            }
         });
     }
 
-    // Navegação de Abas
+    // --- 3. DADOS BANCÁRIOS ---
+    if(formBanco) {
+        formBanco.addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            const userId = getUserIdFromToken();
+            const payload = {
+                Tipo_Pix: inputTipoPix.value,
+                Chave_Pix: inputChavePix.value,
+                Titular_Pix: inputTitularPix.value
+            };
+
+            const btn = formBanco.querySelector("button");
+            const oldText = btn.textContent;
+            btn.textContent = "Salvando...";
+            btn.disabled = true;
+
+            try {
+                // Tentativa de salvar dados bancários na mesma rota de usuário ou específica
+                const response = await fetch(`${API_BASE_URL}/usuario/${userId}`, {
+                    method: "PUT", // Assumindo atualização do objeto usuário
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    showMessage(msgBanco, "Dados bancários salvos!", "#2ecc71");
+                } else {
+                    showMessage(msgBanco, "Erro ao salvar (Verifique API).", "red");
+                }
+            } catch (error) {
+                showMessage(msgBanco, "Erro de conexão.", "red");
+            } finally {
+                btn.textContent = oldText;
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // --- VISUAL: MOSTRAR SENHA ---
+    if(checkMostrarSenha) {
+        checkMostrarSenha.addEventListener("change", function() {
+            const type = this.checked ? "text" : "password";
+            if(inputSenhaAtual) inputSenhaAtual.type = type;
+            if(inputNovaSenha) inputNovaSenha.type = type;
+            if(inputConfirmarSenha) inputConfirmarSenha.type = type;
+        });
+    }
+
+    // --- NAVEGAÇÃO DE ABAS (Dados Pessoais vs Bancários) ---
     window.switchTab = function(tabName, btnElement) {
-        // UI Botões
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         if(btnElement) btnElement.classList.add('active');
 
-        // UI Seções
         document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
         const targetView = document.getElementById(`view-${tabName}`);
         if(targetView) targetView.classList.remove('hidden');
     }
 
-    // Logout
+    // Logout Lateral
     if(btnSidebarLogout) {
-        btnSidebarLogout.addEventListener('click', () => {
-            sessionStorage.clear();
-            window.location.href = 'autenticacao.html';
+        btnSidebarLogout.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = "autenticacao.html";
         });
     }
 });
