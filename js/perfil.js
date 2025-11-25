@@ -1,196 +1,168 @@
+// --- 1. FUNÇÃO DE ABAS (GLOBAL) ---
+// Definida fora do DOMContentLoaded para garantir que exista sempre
+window.switchTab = function(tabName, btnElement) {
+    // Remove active de todos os botões
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    
+    // Adiciona ao clicado (se passado)
+    if(btnElement) btnElement.classList.add('active');
+
+    // Esconde todas as views
+    document.querySelectorAll('.tab-view').forEach(el => {
+        el.classList.add('hidden');
+        el.style.display = 'none'; 
+    });
+    
+    // Mostra a view alvo
+    const targetView = document.getElementById(`view-${tabName}`);
+    if(targetView) {
+        targetView.classList.remove('hidden');
+        targetView.style.display = 'block'; 
+    }
+};
+
 document.addEventListener("DOMContentLoaded", function() {
 
     // --- CONFIGURAÇÃO API ---
     const API_BASE_URL = "http://localhost:3000";
     const token = localStorage.getItem("token");
 
-    // --- VERIFICAÇÃO DE SESSÃO ---
-    if (!token) {
-        alert("Você precisa estar logado.");
-        window.location.href = "autenticacao.html";
-        return;
-    }
-
     // --- ELEMENTOS UI ---
     const profileUserName = document.getElementById("profileUserName");
     const profileUserHandle = document.getElementById("profileUserHandle");
     const btnSidebarLogout = document.getElementById("btnSidebarLogout");
     
-    // Formulário Dados Pessoais
-    const formDados = document.getElementById("perfilForm");
     const inputNome = document.getElementById("nome");
-    const inputUsuario = document.getElementById("usuario");
     const inputEmail = document.getElementById("email");
+    const formDados = document.getElementById("perfilForm");
+    const msgDados = document.getElementById("msgDados"); 
+
+    // Senha (Visual)
+    const checkMostrarSenha = document.getElementById("mostrar-senha");
     const inputSenhaAtual = document.getElementById("senhaAtual");
     const inputNovaSenha = document.getElementById("novaSenha");
     const inputConfirmarSenha = document.getElementById("confirmarSenha");
-    const checkMostrarSenha = document.getElementById("mostrar-senha");
-    const msgDados = document.getElementById("msgDados"); 
 
-    // Formulário Banco
-    const formBanco = document.getElementById("bancoForm");
-    const inputTipoPix = document.getElementById("tipoPix");
-    const inputChavePix = document.getElementById("chavePix");
-    const inputTitularPix = document.getElementById("titularPix");
-    const msgBanco = document.getElementById("msgBanco");
+    // Inicializa a aba padrão (Dados)
+    const defaultTab = document.querySelector('.nav-item.active') || document.querySelector('.nav-item');
+    if(defaultTab) window.switchTab('dados', defaultTab);
 
-    // --- FUNÇÕES AUXILIARES ---
-    function getUserIdFromToken() {
+    // --- 2. RECUPERAÇÃO DO ID DO USUÁRIO ---
+    let userId = null;
+    
+    if (token) {
         try {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-            const decoded = JSON.parse(jsonPayload);
-            return decoded.id || decoded.ID_Usuario || 1; 
-        } catch (e) {
-            return 1;
+            const storedUser = localStorage.getItem("user");
+            console.log("Conteúdo do localStorage 'user':", storedUser); // OLHE NO CONSOLE
+
+            if (storedUser) {
+                const parsedUser = JSON.parse(storedUser);
+                // Tenta encontrar o ID com diferentes nomes possíveis
+                userId = parsedUser.ID_Usuario || parsedUser.id || parsedUser.userId;
+                
+                if(!userId) {
+                    console.warn("Aviso: Objeto usuário existe, mas sem campo de ID compatível.");
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao ler dados locais:", error);
         }
+    } else {
+        alert("Sessão expirada. Faça login novamente.");
+        window.location.href = "autenticacao.html";
+        return; 
     }
 
-    function showMessage(element, text, color) {
-        if(element) {
-            element.textContent = text;
-            element.style.color = color;
-            setTimeout(() => { element.textContent = ""; }, 4000);
-        } else {
-            alert(text);
-        }
+    // --- 3. BUSCAR DADOS (Somente se tiver ID) ---
+    if (userId) {
+        carregarDados(userId);
+    } else {
+        console.error("ID não encontrado. Impossível buscar dados.");
+        if(profileUserName) profileUserName.textContent = "Erro de Sessão";
+        if(profileUserHandle) profileUserHandle.textContent = "Faça login novamente";
     }
 
-    // --- 1. CARREGAR DADOS (GET) ---
-    async function loadProfile() {
-        const userId = getUserIdFromToken();
-        
+    async function carregarDados(id) {
         try {
-            const response = await fetch(`${API_BASE_URL}/usuario/${userId}`, {
+            console.log(`Buscando dados na API: ${API_BASE_URL}/usuario/${id}`);
+            
+            const response = await fetch(`${API_BASE_URL}/usuario/${id}`, {
                 method: "GET",
                 headers: {
-                    "Authorization": `Bearer ${token}`
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
                 }
             });
 
             if (response.ok) {
-                const user = await response.json();
-                if (user) {
-                    localStorage.setItem("user", JSON.stringify(user));
-                }
-                
-                // Popula UI Lateral
-                if(profileUserName) profileUserName.textContent = user.Nome_Usuario || user.Nome || "Usuário";
-                if(profileUserHandle) profileUserHandle.textContent = user.Email_Usuario || user.Email;
+                const userData = await response.json();
+                console.log("Dados recebidos da API:", userData);
 
-                // Popula Formulário Dados
-                if(inputNome) inputNome.value = user.Nome_Usuario || user.Nome || "";
-                if(inputEmail) inputEmail.value = user.Email_Usuario || user.Email || "";
-                
-                // Se a API retornar esses campos no futuro, basta mapear aqui:
-                if(inputUsuario && user.Nickname) inputUsuario.value = user.Nickname;
-                
-                if(inputChavePix && user.Chave_Pix) inputChavePix.value = user.Chave_Pix;
-                if(inputTitularPix && user.Titular_Pix) inputTitularPix.value = user.Titular_Pix;
-                if(inputTipoPix && user.Tipo_Pix) inputTipoPix.value = user.Tipo_Pix;
+                // Preenche a tela
+                if(profileUserName) profileUserName.textContent = userData.Nome_Usuario || "Usuário";
+                if(profileUserHandle) profileUserHandle.textContent = userData.Email_Usuario || "";
+                if(inputNome) inputNome.value = userData.Nome_Usuario || "";
+                if(inputEmail) inputEmail.value = userData.Email_Usuario || "";
+
+                // Atualiza o localStorage para manter sincronizado (opcional)
+                // localStorage.setItem("user", JSON.stringify(userData));
 
             } else {
-                console.error("Erro ao carregar perfil:", response.status);
+                console.error("Erro na resposta da API:", response.status);
             }
         } catch (error) {
-            console.error("Erro de conexão:", error);
+            console.error("Erro de conexão (fetch):", error);
         }
     }
 
-    // Inicializa
-    loadProfile();
-
-
-    // --- 2. ATUALIZAR DADOS (PUT - Simulação/Preparação) ---
-    if(formDados) {
+    // --- 4. ATUALIZAR DADOS (PUT) ---
+    if (formDados) {
         formDados.addEventListener("submit", async function(e) {
             e.preventDefault();
             
-            // Validação simples de senha
-            if (inputNovaSenha.value && inputNovaSenha.value !== inputConfirmarSenha.value) {
-                showMessage(msgDados, "As novas senhas não coincidem.", "red");
+            if(!userId) {
+                alert("Erro: ID de usuário não identificado. Faça login novamente.");
                 return;
             }
 
-            const userId = getUserIdFromToken();
-            const payload = {
-                Nome_Usuario: inputNome.value,
-                // Envia senha nova apenas se o usuário digitou
-                ...(inputSenhaAtual.value ? { senhaAtual: inputSenhaAtual.value } : {}),
-                ...(inputNovaSenha.value ? { novaSenha: inputNovaSenha.value } : {})
-            };
-
-            const btn = formDados.querySelector("button");
+            const btn = formDados.querySelector("button[type='submit']");
             const oldText = btn.textContent;
             btn.textContent = "Salvando...";
             btn.disabled = true;
+            msgDados.textContent = "";
 
             try {
-                // ATENÇÃO: Esta rota (PUT) não estava no seu Postman, mas é o padrão.
-                // Se der 404, é porque o backend ainda não criou a rota.
-                const response = await fetch(`${API_BASE_URL}/auth/update-profile`, {
-                    method: "PUT", // ou PATCH
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify(payload)
-                });
+                const payload = {
+                    Nome_Usuario: inputNome.value,
+                    Email_Usuario: inputEmail.value
+                };
 
-                if (response.ok) {
-                    showMessage(msgDados, "Dados atualizados com sucesso!", "#2ecc71");
-                    // Atualiza nome no localStorage para refletir na navbar sem refresh
-                    localStorage.setItem("userName", inputNome.value);
-                    if(inputEmail.value) localStorage.setItem("userEmail", inputEmail.value);
-                } else {
-                    let msg = await response.json();
-                    showMessage(msgDados, msg.error, "red");
-                }
-            } catch (error) {
-                showMessage(msgDados, "Erro de conexão.", "red");
-            } finally {
-                btn.textContent = oldText;
-                btn.disabled = false;
-            }
-        });
-    }
-
-    // --- 3. DADOS BANCÁRIOS ---
-    if(formBanco) {
-        formBanco.addEventListener("submit", async function(e) {
-            e.preventDefault();
-            
-            const userId = getUserIdFromToken();
-            const payload = {
-                Tipo_Pix: inputTipoPix.value,
-                Chave_Pix: inputChavePix.value,
-                Titular_Pix: inputTitularPix.value
-            };
-
-            const btn = formBanco.querySelector("button");
-            const oldText = btn.textContent;
-            btn.textContent = "Salvando...";
-            btn.disabled = true;
-
-            try {
-                // Tentativa de salvar dados bancários na mesma rota de usuário ou específica
                 const response = await fetch(`${API_BASE_URL}/usuario/${userId}`, {
-                    method: "PUT", // Assumindo atualização do objeto usuário
+                    method: "PUT", // Se der 404, seu backend pode não ter essa rota ainda
                     headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify(payload)
                 });
 
                 if (response.ok) {
-                    showMessage(msgBanco, "Dados bancários salvos!", "#2ecc71");
+                    const updatedUser = await response.json();
+                    msgDados.style.color = "green";
+                    msgDados.textContent = "Dados atualizados!";
+                    
+                    // Atualiza visual
+                    if(profileUserName) profileUserName.textContent = updatedUser.Nome_Usuario;
+                    // Atualiza cache
+                    localStorage.setItem("user", JSON.stringify(updatedUser));
                 } else {
-                    showMessage(msgBanco, "Erro ao salvar (Verifique API).", "red");
+                    msgDados.style.color = "red";
+                    msgDados.textContent = "Erro ao atualizar.";
                 }
             } catch (error) {
-                showMessage(msgBanco, "Erro de conexão.", "red");
+                console.error(error);
+                msgDados.style.color = "red";
+                msgDados.textContent = "Erro de conexão.";
             } finally {
                 btn.textContent = oldText;
                 btn.disabled = false;
@@ -198,7 +170,9 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // --- VISUAL: MOSTRAR SENHA ---
+    // --- 5. OUTRAS FUNCIONALIDADES ---
+    
+    // Mostrar/Ocultar Senha
     if(checkMostrarSenha) {
         checkMostrarSenha.addEventListener("change", function() {
             const type = this.checked ? "text" : "password";
@@ -208,22 +182,12 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // --- NAVEGAÇÃO DE ABAS (Dados Pessoais vs Bancários) ---
-    window.switchTab = function(tabName, btnElement) {
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        if(btnElement) btnElement.classList.add('active');
-
-        document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
-        const targetView = document.getElementById(`view-${tabName}`);
-        if(targetView) targetView.classList.remove('hidden');
-    }
-
-    // Logout Lateral
+    // Logout
     if(btnSidebarLogout) {
         btnSidebarLogout.addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.clear();
-            window.location.href = "autenticacao.html";
+            window.location.href = 'autenticacao.html';
         });
     }
 });
