@@ -1,377 +1,340 @@
 document.addEventListener("DOMContentLoaded", function() {
     
-    // --- CONFIGURAÇÕES API ---
     const API_BASE_URL = "http://localhost:3000";
     const token = localStorage.getItem("token");
-    const userEmail = localStorage.getItem("userEmail"); // Necessário para saber se fui convidado
+    let user = null;
+    try { user = JSON.parse(localStorage.getItem("user")); } catch (e) {}
 
-    // --- PROTEÇÃO DE ROTA ---
-    if (!token) {
-        window.location.href = "autenticacao.html";
-        return;
-    }
+    if (!token || !user) { window.location.href = "autenticacao.html"; return; }
 
-    // --- ELEMENTOS DOM (Conferidos com o HTML) ---
+    const userId = user.ID_Usuario || user.id || user.userId;
+    const userEmail = user.Email_Usuario || user.email;
     const grid = document.getElementById('events-grid');
     
-    // Botões de Filtro (Abas)
+    // Abas
     const btnHosted = document.getElementById('btnHosted');
     const btnInvited = document.getElementById('btnInvited');
     const btnDonations = document.getElementById('btnDonations');
-    
+    const allTabs = [btnHosted, btnInvited, btnDonations];
+
     // Modais
     const editModal = document.getElementById('editEventModal');
-    const pixModal = document.getElementById('pixModal');
+    const guestModal = document.getElementById('guestModal'); 
+    const pixModal = document.getElementById('pixModal'); 
     const successModal = document.getElementById('successModal');
-
-    // Elementos do Formulário de Edição
-    const inputId = document.getElementById('editEventId');
-    const inputTitle = document.getElementById('editTitle');
-    const inputDate = document.getElementById('editDate');
-    const inputTime = document.getElementById('editTime');
-    const inputLocation = document.getElementById('editLocation');
-    const inputDescription = document.getElementById('editDescription');
     
-    const btnSave = document.getElementById('btn-save'); // Verifique se adicionou este ID no HTML
-    const btnDelete = document.getElementById('btn-delete'); // Verifique se adicionou este ID no HTML
-    const btnContribute = document.getElementById('btnContribute'); // Verifique se adicionou este ID no HTML
+    // Inputs
+    const inputEditId = document.getElementById('editEventId');
+    const inputEditTitle = document.getElementById('editTitle');
+    const inputEditDate = document.getElementById('editDate');
+    const inputEditTime = document.getElementById('editTime');
+    const inputEditLocation = document.getElementById('editLocation');
 
-    // Variáveis de Estado
-    let currentView = 'hosted'; // 'hosted', 'invited', 'donations'
-    let allEventsCache = [];
-    let currentEditingEvent = null;
+    // ======================================================
+    // 1. INICIALIZAÇÃO INTELIGENTE (LER URL)
+    // ======================================================
+    
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    const openPixKey = params.get('openPix');
+    const editId = params.get('id');
 
-    // --- FUNÇÕES AUXILIARES ---
-    function getUserIdFromToken() {
-        try {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-            return JSON.parse(jsonPayload).id || 1; 
-        } catch (e) { return 1; }
-    }
-
-    const myId = getUserIdFromToken();
-
-    // --- 1. CARREGAR EVENTOS (GET) ---
-    async function fetchEvents() {
-        grid.innerHTML = '<div style="color:white; text-align:center; grid-column:1/-1; padding: 20px;">Carregando eventos...</div>';
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/eventos`, {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            
-            if (!response.ok) throw new Error("Erro ao buscar eventos");
-            
-            const events = await response.json();
-            allEventsCache = events;
-            renderEvents();
-
-        } catch (error) {
-            console.error(error);
-            grid.innerHTML = '<div style="color:#ff6b6b; text-align:center; grid-column:1/-1">Falha de conexão com a API. Verifique se o servidor está rodando.</div>';
-        }
-    }
-
-    // --- 2. RENDERIZAR NA TELA (Lógica das Abas) ---
-    function renderEvents() {
-        grid.innerHTML = "";
-        
-        let filteredEvents = [];
-        const emptyMessage = {
-            'hosted': "Você ainda não criou nenhum evento.",
-            'invited': "Você não possui convites pendentes.",
-            'donations': "Nenhuma campanha de arrecadação pública disponível no momento."
-        };
-        
-        // --- LÓGICA DE FILTRAGEM ---
-        if (currentView === 'hosted') {
-            // MEUS EVENTOS: Criado por mim
-            filteredEvents = allEventsCache.filter(e => e.ID_Usuario_Criador == myId);
-
-        } else if (currentView === 'invited') {
-            // CONVITES: Não sou o criador E meu email está na lista (ou lista está vazia se for teste)
-            filteredEvents = allEventsCache.filter(e => {
-                const isNotMine = e.ID_Usuario_Criador != myId;
-                // Verificação segura se Lista_Convidados existe e é array/string
-                let isInvited = false;
-                if (e.Lista_Convidados) {
-                    // Se for string "email1, email2" ou array ["email1", "email2"]
-                    const lista = Array.isArray(e.Lista_Convidados) ? e.Lista_Convidados.join(',') : e.Lista_Convidados;
-                    isInvited = lista.includes(userEmail);
+    if (tabParam === 'donations') {
+        // Se veio do dashboard para doar
+        if(btnDonations) {
+            setActiveTab(btnDonations);
+            fetchDonations().then(() => {
+                // Se tiver chave pix na URL, abre o modal imediatamente
+                if (openPixKey) {
+                    window.openPixModal(decodeURIComponent(openPixKey));
                 }
-                return isNotMine && isInvited;
-            });
-
-        } else if (currentView === 'donations') {
-            // DOAÇÕES (Campanhas Gerais): 
-            // 1. Não é meu evento
-            // 2. Tem Meta de Arrecadação (significa que pede dinheiro)
-            filteredEvents = allEventsCache.filter(e => {
-                const isNotMine = e.ID_Usuario_Criador != myId;
-                const hasMeta = parseFloat(e.Meta_Arrecadacao) > 0;
-                return isNotMine && hasMeta;
             });
         }
+    } else {
+        // Padrão: Abre Meus Eventos
+        if(btnHosted) {
+            setActiveTab(btnHosted);
+            fetchMyEvents().then(() => {
+                // Se tiver ID para editar
+                if (editId) window.openEditModal(editId);
+            });
+        }
+    }
 
-        // Renderização Vazia
-        if (filteredEvents.length === 0) {
-            grid.innerHTML = `
-                <div class="empty-state" style="grid-column:1/-1; text-align:center; color:#888; margin-top:50px;">
-                    <i class="fa-regular fa-calendar-xmark" style="font-size: 3rem; margin-bottom: 15px;"></i>
-                    <p>${emptyMessage[currentView]}</p>
-                </div>`;
+    // Limpa a URL para não ficar reabrindo se der F5
+    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    window.history.replaceState({path:cleanUrl}, '', cleanUrl);
+
+
+    // Listeners de Abas
+    if(btnHosted) btnHosted.addEventListener('click', () => { setActiveTab(btnHosted); fetchMyEvents(); });
+    if(btnInvited) btnInvited.addEventListener('click', () => { setActiveTab(btnInvited); fetchInvitedEvents(); });
+    if(btnDonations) btnDonations.addEventListener('click', () => { setActiveTab(btnDonations); fetchDonations(); });
+
+    function setActiveTab(activeBtn) {
+        allTabs.forEach(btn => { if(btn) btn.classList.remove('active'); });
+        if(activeBtn) activeBtn.classList.add('active');
+        grid.innerHTML = '<div style="text-align:center; padding:40px; color:white;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p>Carregando...</p></div>';
+    }
+
+    // --- FETCHS ---
+    async function fetchMyEvents() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/eventos/usuario/${userId}`, { headers: { "Authorization": `Bearer ${token}` } });
+            if(res.ok) renderEvents(await res.json(), 'hosted');
+            else showError("Erro ao carregar eventos.");
+        } catch (error) { showError("Erro de conexão."); }
+    }
+
+    async function fetchInvitedEvents() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/eventos/convites/${userEmail}`, { headers: { "Authorization": `Bearer ${token}` } });
+            if(res.ok) renderEvents(await res.json(), 'invited');
+            else showError("Erro ao buscar convites.");
+        } catch (error) { showError("Erro de conexão."); }
+    }
+
+    async function fetchDonations() {
+        try {
+            const res = await fetch(`${API_BASE_URL}/campanha/ativas`, { headers: { "Authorization": `Bearer ${token}` } });
+            if(res.ok) renderDonations(await res.json());
+            else showError("Erro ao buscar doações.");
+        } catch (error) { showError("Erro de conexão."); }
+    }
+
+    function showError(msg) { grid.innerHTML = `<div class="empty-state"><p style="color:#ff6b6b">${msg}</p></div>`; }
+
+    // --- RENDERIZAÇÃO ---
+    function renderEvents(events, type) {
+        grid.innerHTML = "";
+        if (!events || events.length === 0) {
+            grid.innerHTML = `<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>${type === 'hosted' ? "Você não tem eventos." : "Sem convites pendentes."}</p></div>`;
             return;
         }
 
-        // Renderização dos Cards
-        filteredEvents.forEach(evt => {
-            const id = evt.ID_Evento || evt.id;
-            const titulo = evt.Titulo_Evento || evt.Titulo;
-            const dataStr = evt.Data_Evento || evt.Data;
-            const local = evt.Local_Evento || evt.Local;
+        events.forEach(evt => {
+            const card = document.createElement('div');
+            card.className = 'event-card card-item'; 
             
-            // Valores monetários
-            const meta = parseFloat(evt.Meta_Arrecadacao || 0);
-            const arrecadado = parseFloat(evt.Valor_Arrecadado || 0);
-            const percent = meta > 0 ? (arrecadado / meta) * 100 : 0;
-            
-            // Data Legível
-            const dia = new Date(dataStr).getDate() || "--";
-            const mes = new Date(dataStr).toLocaleDateString('pt-BR',{month:'short'}).replace('.','').toUpperCase();
+            const dataObj = new Date(evt.Data_Evento);
+            const dia = dataObj.toLocaleDateString('pt-BR');
+            let hora = "--:--";
+            if(evt.Horario_Evento) { try { hora = new Date(evt.Horario_Evento).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}); } catch(e){} }
 
-            // Lógica do Botão (Dono Edita / Outros Doam)
-            let actionBtn = "";
-            
-            if (currentView === 'hosted') {
-                // Se é meu, eu edito
-                actionBtn = `<button class="btn-action btn-edit" onclick="openEditModal(${id})"><i class="fa-solid fa-pen"></i> Editar</button>`;
+            let buttonsHtml = '';
+            let badge = '';
+
+            if (type === 'hosted') {
+                badge = `<span class="status-badge my-event" style="background:#4CAF50; color:white;">Meu Evento</span>`;
+                buttonsHtml = `
+                    <div class="card-actions">
+                        <button class="btn-icon edit" onclick="window.openEditModal(${evt.ID_Evento})" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn-icon guest" onclick="window.openGuestModal(${evt.ID_Evento})" title="Convidados"><i class="fa-solid fa-users"></i></button>
+                        <button class="btn-icon delete" onclick="window.deleteEvent(${evt.ID_Evento})" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>
+                `;
             } else {
-                // Se é convite ou doação pública, eu doo
-                // Só mostra botão doar se tiver meta
-                if (meta > 0) {
-                    actionBtn = `<button class="btn-action btn-donate" onclick="openPixModal(${id}, '${titulo}', ${meta - arrecadado})"><i class="fa-solid fa-hand-holding-dollar"></i> Doar</button>`;
-                } else {
-                    actionBtn = `<button class="btn-action" style="cursor:default; opacity:0.7">Apenas Presença</button>`;
-                }
+                const dono = (evt.UsuarioCriador || evt.Usuario)?.Nome_Usuario || "Anfitrião";
+                badge = `<span class="status-badge invited" style="background:#FFD700; color:#333;">Convidado</span>`;
+                
+                let idConvidado = null;
+                if(evt.EventoConvidado && evt.EventoConvidado.length > 0) idConvidado = evt.EventoConvidado[0].ID_Convidado;
+
+                buttonsHtml = `
+                    <div style="margin-top:10px;">
+                        <p style="font-size:0.85rem; color:#ccc; margin-bottom:8px;">Convidado por: <strong>${dono}</strong></p>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-confirm" style="flex:1; font-size:0.9rem; background:#2ecc71; border:none; padding:8px; border-radius:5px; color:white; cursor:pointer;" 
+                                onclick="window.acceptInvite(${evt.ID_Evento}, this)">
+                                <i class="fa-solid fa-check"></i> Aceitar
+                            </button>
+                            <button class="btn-decline" style="flex:1; font-size:0.9rem; background:#ff6b6b; border:none; padding:8px; border-radius:5px; color:white; cursor:pointer;" 
+                                onclick="window.declineInvite(${evt.ID_Evento}, ${idConvidado})">
+                                <i class="fa-solid fa-xmark"></i> Recusar
+                            </button>
+                        </div>
+                    </div>
+                `;
             }
 
-            const cardHTML = `
-                <div class="event-card">
-                    <div class="card-header">
-                        <div class="date-badge">
-                            <span class="day">${dia}</span>
-                            <span class="month">${mes}</span>
-                        </div>
-                        <div class="status-badge ${percent >= 100 ? 'status-complete' : 'status-active'}">
-                            ${percent >= 100 ? 'Concluído' : 'Ativo'}
-                        </div>
-                    </div>
-                    
-                    <div class="card-body">
-                        <h3>${titulo}</h3>
-                        <p class="location"><i class="fa-solid fa-location-dot"></i> ${local}</p>
-                        
-                        <div class="progress-container" ${meta <= 0 ? 'style="display:none"' : ''}>
-                            <div class="progress-labels">
-                                <span>R$ ${arrecadado.toFixed(2)}</span>
-                                <span>Meta: R$ ${meta.toFixed(2)}</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${Math.min(percent, 100)}%"></div>
-                            </div>
-                        </div>
-                    </div>
+            card.innerHTML = `
+                <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span class="event-date" style="font-weight:bold; color:#FFD700;">${dia} às ${hora}</span>
+                    ${badge}
+                </div>
+                <div class="card-body">
+                    <h3 class="event-title" style="margin:0 0 5px 0;">${evt.Titulo_Evento}</h3>
+                    <p class="event-location" style="color:#ccc;"><i class="fa-solid fa-location-dot"></i> ${evt.Local_Evento}</p>
+                </div>
+                <div class="card-footer">${buttonsHtml}</div>
+            `;
+            grid.appendChild(card);
+        });
+    }
 
-                    <div class="card-footer">
-                        ${actionBtn}
-                    </div>
+    function renderDonations(campanhas) {
+        grid.innerHTML = "";
+        if (!campanhas || campanhas.length === 0) {
+            grid.innerHTML = '<p class="empty-msg">Nenhuma campanha ativa.</p>';
+            return;
+        }
+        campanhas.forEach(camp => {
+            const card = document.createElement('div');
+            card.className = 'event-card card-item donation-card';
+            const title = camp.Evento ? camp.Evento.Titulo_Evento : "Campanha";
+            const meta = parseFloat(camp.Meta_Financeira_Campanha).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            card.innerHTML = `
+                <div class="card-header" style="background: linear-gradient(45deg, #FFD700, #FFA500); padding:10px; border-radius:5px 5px 0 0; color:#333; font-weight:bold;">
+                    <div style="display:flex; justify-content:space-between;"><span><i class="fa-solid fa-gift"></i> Campanha</span><span>Aberta</span></div>
+                </div>
+                <div class="card-body" style="padding:15px;">
+                    <h3 class="event-title" style="margin-top:0;">${title}</h3>
+                    <p class="meta-goal" style="font-size:1.1em;">Meta: <strong>${meta}</strong></p>
+                    <p class="donate-text" style="font-size:0.9em; color:#ccc;">Ajude a realizar este sonho!</p>
+                </div>
+                <div class="card-footer" style="padding:10px;">
+                     <button class="btn-donate" style="width:100%; background:#2ecc71; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; font-weight:bold;" onclick="window.openPixModal('${camp.Chave_Pix_Campanha}')"><i class="fa-brands fa-pix"></i> Doar Agora</button>
                 </div>
             `;
-            grid.innerHTML += cardHTML;
+            grid.appendChild(card);
         });
     }
 
-    // --- CONTROLE DE ABAS ---
-    function setActiveTab(tab) {
-        // Remove active visual de todos
-        [btnHosted, btnInvited, btnDonations].forEach(btn => btn.classList.remove('active'));
-        
-        // Adiciona ao clicado
-        if(tab === 'hosted') btnHosted.classList.add('active');
-        if(tab === 'invited') btnInvited.classList.add('active');
-        if(tab === 'donations') btnDonations.classList.add('active');
-        
-        currentView = tab;
-        renderEvents();
-    }
-
-    if(btnHosted) btnHosted.addEventListener('click', () => setActiveTab('hosted'));
-    if(btnInvited) btnInvited.addEventListener('click', () => setActiveTab('invited'));
-    if(btnDonations) btnDonations.addEventListener('click', () => setActiveTab('donations'));
-
-    // --- 3. MODAIS E AÇÕES ---
-    
-    // Abrir Edição
-    window.openEditModal = function(id) {
-        const evt = allEventsCache.find(e => (e.ID_Evento || e.id) == id);
-        if(!evt) return;
-
-        currentEditingEvent = evt;
-        
-        if(inputId) inputId.value = id;
-        if(inputTitle) inputTitle.value = evt.Titulo_Evento || "";
-        if(inputLocation) inputLocation.value = evt.Local_Evento || "";
-        if(inputDescription) inputDescription.value = evt.Descricao || ""; // Caso exista
-        
-        if(inputDate && evt.Data_Evento) inputDate.value = evt.Data_Evento.split('T')[0];
-        
-        if(inputTime && evt.Horario_Evento) {
-            // Extrai hora HH:MM da string ISO
-            const timePart = evt.Horario_Evento.includes('T') ? evt.Horario_Evento.split('T')[1] : evt.Horario_Evento;
-            inputTime.value = timePart.substring(0,5);
+    // --- AÇÕES DE CONVITE ---
+    window.acceptInvite = async function(idEvento, btnElement) {
+        if(btnElement) {
+            btnElement.innerHTML = '<i class="fa-solid fa-check-double"></i> Confirmado';
+            btnElement.style.background = '#27ae60';
+            btnElement.disabled = true;
         }
-
-        editModal.classList.remove('hidden');
-        editModal.style.display = 'flex';
+        alert("Presença confirmada com sucesso!");
     };
 
-    window.closeEditModal = function() {
-        editModal.classList.add('hidden');
-        editModal.style.display = 'none';
-        currentEditingEvent = null;
+    window.declineInvite = async function(idEvento, idConvidado) {
+        if(!idConvidado) return alert("Erro: ID do convite não encontrado.");
+        if(!confirm("Deseja recusar este convite?")) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/convidado/recusar/${idEvento}/${idConvidado}`, {
+                method: 'DELETE',
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if(res.ok) { alert("Convite recusado."); fetchInvitedEvents(); }
+            else alert("Erro ao recusar.");
+        } catch (error) { alert("Erro de conexão."); }
     };
 
-    // Botão Salvar (PUT)
-    if(btnSave) {
-        btnSave.addEventListener('click', async function(e) {
+    // --- MODAIS ---
+    window.openGuestModal = function(id) {
+        document.getElementById('currentEventIdGuest').value = id;
+        document.getElementById('newGuestEmail').value = "";
+        if(guestModal) { guestModal.classList.remove('hidden'); guestModal.style.display='flex'; loadGuestList(id); }
+    };
+    window.closeGuestModal = function() { if(guestModal) guestModal.classList.add('hidden'); };
+
+    async function loadGuestList(id) {
+        const listUl = document.getElementById('guestListUl');
+        const msg = document.getElementById('noGuestsMsg');
+        if(!listUl) return;
+        listUl.innerHTML = '<li style="color:white">Carregando...</li>';
+        try {
+            const res = await fetch(`${API_BASE_URL}/eventos/${id}/convidados`, { headers: { "Authorization": `Bearer ${token}` } });
+            const data = await res.json();
+            listUl.innerHTML = "";
+            if(data.length === 0) msg.style.display = 'block';
+            else {
+                msg.style.display = 'none';
+                data.forEach(item => {
+                    const li = document.createElement('li');
+                    li.style.cssText = "color:white; display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.1)";
+                    li.innerHTML = `<span><i class="fa-solid fa-user"></i> ${item.Convidado.Email_Convidado}</span>
+                        <button onclick="window.removeGuestFromEvent(${id}, ${item.Convidado.ID_Convidado})" style="background:none; border:none; color:#ff6b6b; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>`;
+                    listUl.appendChild(li);
+                });
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    window.addGuest = async function() {
+        const id = document.getElementById('currentEventIdGuest').value;
+        const email = document.getElementById('newGuestEmail').value.trim();
+        if(!email) return alert("Digite um email.");
+        try {
+            const res = await fetch(`${API_BASE_URL}/eventos/${id}/convidar`, {
+                method: 'POST',
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                body: JSON.stringify({ email })
+            });
+            if(res.ok) { document.getElementById('newGuestEmail').value = ""; loadGuestList(id); }
+            else { const d = await res.json(); alert(d.error || "Erro ao convidar"); }
+        } catch(e) { alert("Erro conexão"); }
+    };
+
+    window.removeGuestFromEvent = async function(idEvento, idConvidado) {
+        if(!confirm("Remover este convidado?")) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/eventos/${idEvento}/convidar/${idConvidado}`, {
+                method: 'DELETE',
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if(res.ok) loadGuestList(idEvento);
+        } catch(e) { console.error(e); }
+    };
+
+    window.openEditModal = function(id) {
+        fetch(`${API_BASE_URL}/eventos/${id}`, { headers: { "Authorization": `Bearer ${token}` } })
+        .then(res => res.json())
+        .then(evt => {
+            if(inputEditId) inputEditId.value = evt.ID_Evento;
+            if(inputEditTitle) inputEditTitle.value = evt.Titulo_Evento;
+            if(inputEditLocation) inputEditLocation.value = evt.Local_Evento;
+            if(inputEditDate) inputEditDate.value = new Date(evt.Data_Evento).toISOString().split('T')[0];
+            if(inputEditTime && evt.Horario_Evento) {
+                const d = new Date(evt.Horario_Evento);
+                inputEditTime.value = `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
+            }
+            if(editModal) { editModal.classList.remove('hidden'); editModal.style.display='flex'; }
+        });
+    };
+    window.closeEditModal = function() { if(editModal) editModal.classList.add('hidden'); };
+
+    const formEdit = document.getElementById('editEventForm');
+    if(formEdit) {
+        formEdit.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if(!currentEditingEvent) return;
-            const id = currentEditingEvent.ID_Evento || currentEditingEvent.id;
-            
-            // Constrói Data ISO
-            const dataISO = inputDate.value ? `${inputDate.value}T00:00:00Z` : currentEditingEvent.Data_Evento;
-            const horarioISO = (inputDate.value && inputTime.value) ? `${inputDate.value}T${inputTime.value}:00Z` : currentEditingEvent.Horario_Evento;
-
-            const payload = {
-                Titulo_Evento: inputTitle.value,
-                Local_Evento: inputLocation.value,
-                Data_Evento: dataISO,
-                Horario_Evento: horarioISO
-                // Adicione outros campos se a API suportar (Ex: Descricao, Meta)
-            };
-
-            btnSave.textContent = "Salvando...";
+            const id = inputEditId.value;
+            const payload = { Titulo_Evento: inputEditTitle.value, Local_Evento: inputEditLocation.value, Data_Evento: inputEditDate.value, Horario_Evento: inputEditTime.value };
             try {
-                const response = await fetch(`${API_BASE_URL}/eventos/${id}`, {
-                    method: 'PUT',
-                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                    body: JSON.stringify(payload)
-                });
-                if(response.ok) {
-                    alert("Atualizado com sucesso!");
-                    closeEditModal();
-                    fetchEvents();
-                } else {
-                    alert("Erro ao atualizar.");
-                }
-            } catch (e) { alert("Erro de conexão."); }
-            finally { btnSave.textContent = "Salvar Alterações"; }
+                const res = await fetch(`${API_BASE_URL}/eventos/${id}`, { method: 'PUT', headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }, body: JSON.stringify(payload) });
+                if(res.ok) { alert("Atualizado!"); closeEditModal(); fetchMyEvents(); }
+            } catch(e) { console.error(e); }
         });
     }
 
-    // Botão Excluir (DELETE)
-    if(btnDelete) {
-        btnDelete.addEventListener('click', async function(e) {
-            e.preventDefault(); // Evita submit de form se estiver dentro de um
-            if(!currentEditingEvent) return;
-            if(!confirm("Tem certeza? Essa ação não pode ser desfeita.")) return;
-
-            const id = currentEditingEvent.ID_Evento || currentEditingEvent.id;
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/eventos/${id}`, {
-                    method: 'DELETE',
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                if(response.ok) {
-                    alert("Evento excluído.");
-                    closeEditModal();
-                    fetchEvents();
-                } else {
-                    alert("Erro ao excluir.");
-                }
-            } catch(e) { alert("Erro de conexão."); }
-        });
-    }
-    // Botão Contribuir (abrir modal Pix)
-    if (btnContribute) {
-        btnContribute.addEventListener('click', function() {
-            // 1. Verifica se existe um evento aberto no modal
-            if (!currentEditingEvent) return;
-
-            // 2. Fecha o modal de detalhes atual (para abrir o do Pix)
-            closeEditModal();
-            // 3. Pega os dados do evento atual para preencher o Pix
-            const id = currentEditingEvent.ID_Evento || currentEditingEvent.id;
-            const titulo = currentEditingEvent.Titulo_Evento || currentEditingEvent.Titulo;
-            const meta = parseFloat(currentEditingEvent.Meta_Arrecadacao || 0);
-            const arrecadado = parseFloat(currentEditingEvent.Valor_Arrecadado || 0);
-            const restante = meta - arrecadado;
-
-            // 4. Abre o modal de Pagamento (Pix)
-            // A função openPixModal já foi criada no passo anterior
-            openPixModal(id, titulo, restante);
-        });
-    }
-
-    // --- FLUXO DE DOAÇÃO ---
-    window.openPixModal = function(id, title, remaining) {
-        // Lógica visual do PIX
-        pixModal.classList.remove('hidden');
-        pixModal.style.display = 'flex';
-        // Aqui você poderia colocar o ID do evento num input hidden dentro do modal Pix se fosse enviar pro backend
+    window.deleteEvent = async function(id) {
+        if(!confirm("Tem certeza?")) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/eventos/${id}`, { method: 'DELETE', headers: { "Authorization": `Bearer ${token}` } });
+            if(res.ok) fetchMyEvents(); else alert("Erro ao excluir.");
+        } catch(e) { alert("Erro conexão"); }
     };
 
-    window.closePixModal = function() {
-        pixModal.classList.add('hidden');
-        pixModal.style.display = 'none';
+    window.openPixModal = function(chave) {
+        if(pixModal) {
+            const disp = document.getElementById('displayChavePix');
+            if(disp) disp.innerText = chave;
+            pixModal.classList.remove('hidden');
+            pixModal.style.display = 'flex';
+        }
     };
+    window.closePixModal = function() { if(pixModal) pixModal.classList.add('hidden'); };
 
-    // Botão "Já fiz o PIX"
-    const btnConfirmPix = document.getElementById('pixOkBtn'); // Verifique ID no HTML
-    if(btnConfirmPix) {
-        btnConfirmPix.addEventListener('click', function() {
-            closePixModal();
-            successModal.classList.remove('hidden');
-            successModal.style.display = 'flex';
-        });
-    }
+    const btnPixOk = document.getElementById('pixOkBtn');
+    if(btnPixOk) btnPixOk.addEventListener('click', () => { window.closePixModal(); if(successModal) successModal.classList.remove('hidden'); });
+    const btnCloseSuccess = document.getElementById('btnCloseSuccess');
+    if(btnCloseSuccess) btnCloseSuccess.addEventListener('click', () => successModal.classList.add('hidden'));
 
-    const btnCloseSuccess = document.getElementById('btnCloseSuccess'); // Verifique ID no HTML
-    if(btnCloseSuccess) {
-        btnCloseSuccess.addEventListener('click', function() {
-            successModal.classList.add('hidden');
-            successModal.style.display = 'none';
-            // Recarrega para ver se (num caso real) o valor atualizou
-            fetchEvents();
-        });
-    }
-
-    // Fechar modais clicando fora ou no X
     document.querySelectorAll('.close-modal-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            closeEditModal();
-            closePixModal();
-        });
+        btn.addEventListener('click', () => { closeEditModal(); if(guestModal) closeGuestModal(); window.closePixModal(); });
     });
-    
-    window.addEventListener('click', (e) => {
-        if(e.target === editModal) closeEditModal();
-        if(e.target === pixModal) closePixModal();
-    });
-
-    // Inicia
-    fetchEvents();
 });

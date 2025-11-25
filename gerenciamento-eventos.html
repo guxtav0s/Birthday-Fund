@@ -52,91 +52,74 @@
         </div>
 
   </main>
-
-  <div id="editEventModal" class="modal-backdrop hidden">
+<div id="editEventModal" class="modal-backdrop hidden">
     <div class="modal-content">
-      <span class="close-modal-btn">&times;</span>
-      
-      <div class="modal-header-bg">
-        <i class="fa-solid fa-calendar-day" id="modalIcon"></i>
-      </div>
-
-      <div class="modal-body">
-        <h2 id="modalTitleText">Detalhes</h2>
         
-        <form id="editForm">
-            <input type="hidden" id="editId">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-pen-to-square"></i> Editar Evento</h3>
+            <button type="button" class="close-modal-btn" onclick="window.closeEditModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <form id="editEventForm">
+            <input type="hidden" id="editEventId">
             
             <div class="form-group">
-                <label>Título</label>
-                <input type="text" id="editTitle" required>
+                <label for="editTitle">Título do Evento</label>
+                <input type="text" id="editTitle" class="input-field" placeholder="Ex: Aniversário..." required>
             </div>
-            
+
             <div class="form-row">
                 <div class="form-group">
-                    <label>Data</label>
-                    <input type="text" id="editDate" placeholder="DD/MM" required>
+                    <label for="editDate">Data</label>
+                    <input type="date" id="editDate" class="input-field" required>
                 </div>
                 <div class="form-group">
-                    <label>Hora</label>
-                    <input type="text" id="editTime" placeholder="HH:MM" required>
+                    <label for="editTime">Horário</label>
+                    <input type="time" id="editTime" class="input-field" required>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Local</label>
-                <input type="text" id="editLocation" required>
+                <label for="editLocation">Local</label>
+                <input type="text" id="editLocation" class="input-field" placeholder="Endereço ou local" required>
             </div>
 
-            <div class="form-group">
-                <label>Descrição</label>
-                <textarea id="editDescription" rows="3"></textarea>
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="window.closeEditModal()">Cancelar</button>
+                <button type="submit" id="btnSaveEdit" class="btn-confirm">Salvar Alterações</button>
             </div>
+        </form>
+    </div>
+</div>
 
-            <div id="metaDisplayArea" class="form-group hidden">
-                <label style="color:#FFD700">Progresso</label>
-                <div class="progress-container" style="margin-top:5px;">
-                    <div class="progress-track">
-                        <div class="progress-fill" id="modalProgressFill" style="width:0%"></div>
-                    </div>
-                    <div class="progress-meta" style="display:flex; justify-content:space-between; color:#ccc; font-size:0.85rem; margin-top:5px;">
-                        <span id="modalRaisedValue">R$ 0</span>
-                        <span id="modalMetaValue">Meta: R$ 0</span>
-                    </div>
-                </div>
-            </div>
-
-            <div id="hostControls" class="form-group hidden">
-                <label style="color:#FFD700; border-bottom:1px solid #444; padding-bottom:5px; margin-top:10px;">
-                    <i class="fa-solid fa-users-gear"></i> Convidados
-                </label>
-                <div class="invite-input-group">
-                    <input type="email" id="newGuestEmail" placeholder="email@amigo.com">
-                    <button type="button" class="btn-small add-btn" id="btnAddGuest"><i class="fa-solid fa-plus"></i></button>
-                </div>
-                <ul id="guestListDisplay" class="guest-list-mini"></ul>
-            </div>
-
-            <div id="ownerActions" class="modal-actions hidden">
-                <button type="button" class="btn-delete" id="btnDelete">Excluir</button>
-                <button type="submit" class="btn-save">Salvar</button>
-            </div>
-
-            <div id="guestActions" class="modal-actions hidden">
-                <button type="button" class="btn-delete" id="btnDecline">Recusar</button>
-                <button type="button" class="btn-save" id="btnConfirm">Confirmar</button>
-            </div>
-
-            <div id="donationActions" class="modal-actions hidden">
-                <button type="button" class="btn-save btn-donate" id="btnContribute" style="background:#FFD700; color:#1A1F45; width:100%;">
-                    <i class="fa-solid fa-hand-holding-dollar"></i> Contribuir
+<div id="guestModal" class="modal-backdrop hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-users"></i> Lista de Convidados</h3>
+            <button type="button" class="close-modal-btn" onclick="window.closeGuestModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="invite-box">
+                <input type="email" id="newGuestEmail" class="input-field" placeholder="Digite o e-mail do convidado...">
+                <button class="btn-add-guest" onclick="window.addGuest()">
+                    <i class="fa-solid fa-paper-plane"></i> Convidar
                 </button>
             </div>
+            <input type="hidden" id="currentEventIdGuest">
 
-        </form>
-      </div>
+            <div class="guest-list-container">
+                <ul id="guestListUl" class="guest-list">
+                    </ul>
+                <p id="noGuestsMsg" style="text-align:center; color:#aaa; margin-top:10px;">Nenhum convidado ainda.</p>
+            </div>
+        </div>
     </div>
-  </div>
+</div>
 
 <div id="pixModal" class="modal-backdrop hidden">
     <div class="modal-content" style="max-width: 380px;">
