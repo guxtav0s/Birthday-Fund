@@ -2,13 +2,38 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const API_BASE_URL = "http://localhost:3000";
 
-    // Verifica se veio do fluxo correto
-    const emailToReset = sessionStorage.getItem("resetEmail");
+    // --- FUNÇÃO PARA OBTER PARÂMETROS DA URL ---
+    const getUrlParameter = (name) => {
+        // Função para ler o valor dos parâmetros (ex: ?token=VALOR&email=VALOR)
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        const results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    };
+    // ------------------------------------------
+
+    // Tenta obter o token e email da URL
+    const urlToken = getUrlParameter('token');
+    const urlEmail = getUrlParameter('email');
+    
+    let emailToReset = null;
+
+    if (urlToken && urlEmail) {
+        // FLUXO 1: Via link de e-mail (URL)
+        emailToReset = urlEmail;
+    } else {
+        // FLUXO 2: Via sessão (o fluxo original, caso o usuário tenha digitado o código)
+        emailToReset = sessionStorage.getItem("resetEmail");
+    }
+    
+    // --- VALIDAÇÃO DE FLUXO ---
+    // Se não tiver email de jeito nenhum, redireciona.
     if (!emailToReset) {
         alert("Fluxo inválido. Por favor, inicie pelo 'Esqueci minha senha'.");
-        window.location.href = "esqueci-senha.html"; // Redireciona para o início do fluxo
+        window.location.href = "esqueci-senha.html"; 
         return;
     }
+
 
     const form = document.getElementById("formRedefinir");
     const tokenInput = document.getElementById("token");
@@ -20,6 +45,13 @@ document.addEventListener("DOMContentLoaded", function() {
     const confirmarError = document.getElementById("confirmarError");
     const mensagemGeral = document.getElementById("mensagemGeral");
     
+    // --- PREENCHE TOKEN SE VIER DA URL ---
+    if (urlToken && tokenInput) {
+        tokenInput.value = urlToken;
+        // Opcional: Se o campo 'token' for visível, você pode torná-lo somente leitura
+        // tokenInput.readOnly = true; 
+    }
+
     // Toggle Senha (Visualizar/Ocultar)
     document.querySelectorAll('.toggle-btn').forEach(icon => {
         icon.addEventListener('click', function() {
@@ -36,51 +68,59 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // Validações
-    function validarFormulario() {
-        let valid = true;
+    // Validações (Mantenha as suas validações de senha aqui)
+    const validateFields = () => {
+        let isValid = true;
+        // ... (Insira suas regras de validação aqui) ...
         
-        // Senha tamanho
-        if (senhaInput.value.length > 0 && senhaInput.value.length < 6) {
+        // Exemplo de validação mínima (6 caracteres)
+        if (senhaInput.value.length < 6) {
             senhaError.textContent = "A senha deve ter no mínimo 6 caracteres.";
-            valid = false;
+            isValid = false;
         } else {
             senhaError.textContent = "";
         }
-
-        // Senhas iguais
-        if (confirmarSenhaInput.value.length > 0 && senhaInput.value !== confirmarSenhaInput.value) {
+        
+        if (senhaInput.value !== confirmarSenhaInput.value) {
             confirmarError.textContent = "As senhas não coincidem.";
-            valid = false;
+            isValid = false;
         } else {
             confirmarError.textContent = "";
         }
 
-        // Token preenchido
-        if (!tokenInput.value) valid = false;
-        if (senhaInput.value === "" || confirmarSenhaInput.value === "") valid = false;
-        
-        btnRedefinir.disabled = !valid;
-    }
+        btnRedefinir.disabled = !isValid;
+    };
 
-    tokenInput.addEventListener("input", validarFormulario);
-    senhaInput.addEventListener("input", validarFormulario);
-    confirmarSenhaInput.addEventListener("input", validarFormulario);
+    senhaInput.addEventListener('input', validateFields);
+    confirmarSenhaInput.addEventListener('input', validateFields);
 
-    // Submit
-    form.addEventListener("submit", async function(e) {
+
+    // --- ATUALIZAÇÃO DA SUBMISSÃO DO FORMULÁRIO ---
+    form.addEventListener("submit", async (e) => {
         e.preventDefault();
         
-        const originalText = btnRedefinir.textContent;
+        if (btnRedefinir.disabled) return; // Não submete se estiver inválido
+
         btnRedefinir.disabled = true;
-        btnRedefinir.textContent = "Atualizando...";
-        mensagemGeral.textContent = "";
-        mensagemGeral.style.color = ""; // Reset cor
+        const originalText = btnRedefinir.textContent;
+        btnRedefinir.textContent = "Redefinindo...";
+        mensagemGeral.textContent = ""; // Limpa mensagens de erro anteriores
 
         try {
+            // Prioriza o token da URL, se existir, caso contrário, usa o valor do input (session)
+            const tokenValue = urlToken || tokenInput.value;
+            
+            if (!tokenValue) {
+                mensagemGeral.textContent = "Token de redefinição não encontrado ou expirado.";
+                mensagemGeral.style.color = "#ff6b6b";
+                btnRedefinir.disabled = false;
+                btnRedefinir.textContent = originalText;
+                return;
+            }
+
             const payload = {
-                email: emailToReset,
-                token: tokenInput.value,
+                Email_Usuario: emailToReset, // Usa o email obtido (URL ou Session)
+                token: tokenValue, // Usa o token obtido (URL ou Input)
                 newPassword: senhaInput.value
             };
 
@@ -96,9 +136,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 // SUCESSO
                 mensagemGeral.style.color = "#4CAF50";
                 mensagemGeral.textContent = "Senha redefinida com sucesso!";
-                
-                // Limpa sessão
-                sessionStorage.removeItem("resetEmail");
+                sessionStorage.removeItem("resetEmail"); // Limpa sessão
 
                 setTimeout(() => {
                     window.location.href = "autenticacao.html";
@@ -118,5 +156,4 @@ document.addEventListener("DOMContentLoaded", function() {
             btnRedefinir.textContent = originalText;
         }
     });
-
 });

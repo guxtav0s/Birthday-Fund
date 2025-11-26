@@ -1,5 +1,5 @@
-document.addEventListener("DOMContentLoaded", function() {
-    
+document.addEventListener("DOMContentLoaded", function () {
+
     const API_BASE_URL = "http://localhost:3000";
     const token = localStorage.getItem("token");
     let user = null;
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const statInvites = document.getElementById('statInvites');
     const statActive = document.getElementById('statActive');
     const welcomeTitle = document.getElementById('welcomeTitle');
-    
+
     // Modais
     const createModal = document.getElementById('createEventModal');
     const createForm = document.getElementById('createEventForm');
@@ -34,8 +34,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const newMeta = document.getElementById('newMeta');
 
     // Saudação
-    if(welcomeTitle) {
-        const rawName = user.Nome_Usuario || user.nome || "Usuário";
+    if (welcomeTitle) {
+        const rawName = user.userName || user.nome || "Usuário";
         welcomeTitle.innerHTML = `Olá, <span style="color:#FFD700">${rawName.split(' ')[0]}</span>!`;
     }
 
@@ -45,8 +45,8 @@ document.addEventListener("DOMContentLoaded", function() {
     loadDashboard();
 
     async function loadDashboard() {
-        if(!eventsListContainer) return;
-        
+        if (!eventsListContainer) return;
+
         try {
             // 1. Busca Meus Eventos
             const resEvents = await fetch(`${API_BASE_URL}/eventos/usuario/${userId}`, { headers: { "Authorization": `Bearer ${token}` } });
@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function renderMixedList(list) {
         eventsListContainer.innerHTML = "";
-        
+
         // Pega os 4 primeiros itens misturados
         const displayList = list.slice(0, 4);
 
@@ -94,12 +94,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
         displayList.forEach(item => {
             const date = new Date(item.Data_Evento).toLocaleDateString('pt-BR');
-            
+
             // Ícone diferente se for campanha
-            const icon = item.isCampaign 
-                ? '<i class="fa-solid fa-hand-holding-dollar" style="color:#2ecc71;"></i>' 
+            const icon = item.isCampaign
+                ? '<i class="fa-solid fa-hand-holding-dollar" style="color:#2ecc71;"></i>'
                 : '<i class="fa-solid fa-calendar-check" style="color:#FFD700;"></i>';
-            
+
             const div = document.createElement('div');
             div.className = 'event-item';
             div.innerHTML = `
@@ -119,29 +119,29 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function updateStats(events) {
-        if(statActive) statActive.innerText = events.length;
-        if(statInvites) statInvites.innerText = "-"; 
+        if (statActive) statActive.innerText = events.length;
+        if (statInvites) statInvites.innerText = "-";
     }
 
     // --- MODAL DE DETALHES INTELIGENTE ---
-    window.openDetailModal = function(id, isCampaign) {
+    window.openDetailModal = function (id, isCampaign) {
         // Acha o evento na lista misturada
         const evt = window.mixedDashboardList.find(e => e.ID_Evento == id && (!!e.isCampaign == isCampaign));
-        if(!evt) return;
+        if (!evt) return;
 
         document.getElementById('modalTitle').innerText = evt.Titulo_Evento;
         document.getElementById('modalLocation').innerText = evt.Local_Evento;
         document.getElementById('modalDate').innerText = new Date(evt.Data_Evento).toLocaleDateString('pt-BR');
-        
+
         const descEl = document.getElementById('modalDescription');
-        if(descEl) descEl.innerText = evt.Descricao_Evento || "Sem descrição.";
+        if (descEl) descEl.innerText = evt.Descricao_Evento || "Sem descrição.";
 
         // LÓGICA DO BOTÃO DE AÇÃO DO MODAL
         // Precisamos achar onde injetar o botão ou criar um footer dinâmico
         let modalFooter = detailModal.querySelector('.modal-footer-action');
-        
+
         // Se não tiver footer no HTML, cria um dinamicamente
-        if(!modalFooter) {
+        if (!modalFooter) {
             modalFooter = document.createElement('div');
             modalFooter.className = 'modal-footer-action';
             modalFooter.style.marginTop = '20px';
@@ -159,9 +159,9 @@ document.addEventListener("DOMContentLoaded", function() {
             btnDonate.style.background = '#2ecc71';
             btnDonate.style.width = '100%';
             btnDonate.innerHTML = '<i class="fa-brands fa-pix"></i> Quero Doar';
-            
+
             // O PULO DO GATO: Redireciona passando parâmetros na URL
-            btnDonate.onclick = function() {
+            btnDonate.onclick = function () {
                 window.location.href = `gerenciamento-eventos.html?tab=donations&openPix=${encodeURIComponent(evt.pixKey)}`;
             };
             modalFooter.appendChild(btnDonate);
@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const btnManage = document.createElement('button');
             btnManage.className = 'btn-details'; // Estilo padrão
             btnManage.innerText = 'Gerenciar Evento';
-            btnManage.onclick = function() {
+            btnManage.onclick = function () {
                 window.location.href = `gerenciamento-eventos.html?id=${id}`;
             };
             modalFooter.appendChild(btnManage);
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     // --- CRIAÇÃO (MANTIDA) ---
-    if(createForm) {
+    if (createForm) {
         createForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = createForm.querySelector('button[type="submit"]');
@@ -199,14 +199,14 @@ document.addEventListener("DOMContentLoaded", function() {
                 Descricao_Evento: newDescription ? newDescription.value : ""
             };
 
-            if(newGuests && newGuests.value.trim() !== "") {
+            if (newGuests && newGuests.value.trim() !== "") {
                 payload.Convidados = newGuests.value.split(',').map(email => email.trim());
             }
 
             if (newType && newType.value === 'doacao' && newMeta && newMeta.value > 0) {
                 payload.Campanha = {
                     meta: parseFloat(newMeta.value),
-                    chavePix: "Chave PIX do Perfil" 
+                    chavePix: "Chave PIX do Perfil"
                 };
             }
 
@@ -217,43 +217,72 @@ document.addEventListener("DOMContentLoaded", function() {
                     body: JSON.stringify(payload)
                 });
 
-                if(res.ok) {
+                if (res.ok) {
                     alert("Criado com sucesso!");
                     createForm.reset();
                     window.closeCreateModal();
-                    loadDashboard(); 
+                    loadDashboard();
                 } else {
                     const err = await res.json();
                     alert("Erro: " + (err.error || "Verifique dados."));
                 }
-            } catch (error) { alert("Erro conexão."); } 
+            } catch (error) { alert("Erro conexão."); }
             finally { btnSubmit.textContent = "Criar Evento"; btnSubmit.disabled = false; }
         });
     }
 
     // Modais auxiliares
-    window.openCreateModal = function() {
-        if(createForm) createForm.reset(); 
-        if(document.getElementById('metaFieldGroup')) document.getElementById('metaFieldGroup').classList.add('hidden');
-        if(createModal) { createModal.classList.remove('hidden'); createModal.style.display='flex'; }
-    };
-    window.closeCreateModal = function() { if(createModal) createModal.classList.add('hidden'); };
+    window.openCreateModal = function () {
+        console.log('Abrindo modal de criação');
+        
+        // Limpa o formulário
+        if (createForm) createForm.reset(); 
+    
+        // Esconde o campo de meta inicialmente
+        if (document.getElementById('metaFieldGroup')) {
+            document.getElementById('metaFieldGroup').classList.add('hidden');
+        }
 
-    window.toggleMetaField = function() {
+        if (createModal) {
+            createModal.classList.remove('hidden');
+            createModal.style.display = 'flex';
+            
+            // --- CORREÇÃO AQUI ---
+            // Pequeno delay para a animação de opacidade funcionar (opcional, mas fica bonito)
+            setTimeout(() => {
+                createModal.classList.add('active');
+            }, 10);
+        }
+    };
+
+    window.closeCreateModal = function () {
+        if (createModal) {
+            // Remove a classe active primeiro (para o fade out)
+            createModal.classList.remove('active');
+            
+            // Espera a animação acabar para esconder de verdade
+            setTimeout(() => {
+                createModal.classList.add('hidden');
+                createModal.style.display = 'none';
+            }, 300); // 300ms combina com o transition do CSS
+        }
+    };
+
+    window.toggleMetaField = function () {
         const type = document.getElementById('newType').value;
         const grp = document.getElementById('metaFieldGroup');
-        if(grp) { type === 'doacao' ? grp.classList.remove('hidden') : grp.classList.add('hidden'); }
+        if (grp) { type === 'doacao' ? grp.classList.remove('hidden') : grp.classList.add('hidden'); }
     };
-    if(newType) newType.addEventListener('change', window.toggleMetaField);
+    if (newType) newType.addEventListener('change', window.toggleMetaField);
 
     document.querySelectorAll('.close-modal-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            if(detailModal) { detailModal.classList.add('hidden'); detailModal.style.display='none'; }
-            if(createModal) window.closeCreateModal();
+            if (detailModal) { detailModal.classList.add('hidden'); detailModal.style.display = 'none'; }
+            if (createModal) window.closeCreateModal();
         });
     });
     window.addEventListener('click', (e) => {
-        if(e.target === detailModal) { detailModal.classList.add('hidden'); detailModal.style.display='none'; }
-        if(e.target === createModal) window.closeCreateModal();
+        if (e.target === detailModal) { detailModal.classList.add('hidden'); detailModal.style.display = 'none'; }
+        if (e.target === createModal) window.closeCreateModal();
     });
 });
